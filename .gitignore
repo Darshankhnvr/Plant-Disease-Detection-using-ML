@@ -1,0 +1,19 @@
+# Ignore node_modules
+node_modules/
+
+# Ignore environment variables
+.env
+
+# Ignore log files
+*.log
+
+# Ignore build output
+dist/
+build/
+
+# Ignore model files
+models/plant_disease_recog_model_pwp.keras
+
+# Ignore OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Case Details - CropSense</title>
+    <link rel="icon" href="../static/images/logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="modern-navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="../static/images/logo.svg" alt="CropSense" class="nav-logo">
+                <span class="brand-text">CropSense</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/disease-tracker" class="nav-link">Disease Tracker</a>
+                <a href="#" class="nav-link active">Case Details</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="case-container">
+        <!-- Case Header -->
+        <div class="case-header">
+            <div class="case-title">
+                <h1><i class="fas fa-file-medical"></i> {{case_data['case']['plant_name']}}</h1>
+                <div class="case-meta">
+                    <span class="case-id">Case ID: {{case_data['case']['id'][:8]}}</span>
+                    <span class="case-date">Created: {{case_data['case']['created_date'][:10]}}</span>
+                    <span class="case-status status-{{case_data['case']['status']}}">{{case_data['case']['status'].title()}}</span>
+                </div>
+            </div>
+            <div class="case-actions">
+                <button class="btn-primary" onclick="showAddProgressionModal()">
+                    <i class="fas fa-plus"></i> Add Progress Update
+                </button>
+                <button class="btn-secondary" onclick="showAddTreatmentModal()">
+                    <i class="fas fa-medkit"></i> Record Treatment
+                </button>
+            </div>
+        </div>
+
+        <!-- Overview Cards -->
+        <div class="overview-grid">
+            <div class="overview-card">
+                <div class="card-icon disease">
+                    <i class="fas fa-bug"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Initial Disease</h3>
+                    <p>{{case_data['case']['initial_disease'].replace('___', ' - ').replace('_', ' ')}}</p>
+                    <span class="severity-badge severity-{{case_data['case']['initial_severity'].lower()}}">{{case_data['case']['initial_severity']}}</span>
+                </div>
+            </div>
+
+            <div class="overview-card">
+                <div class="card-icon health">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Initial Health Score</h3>
+                    <p class="health-score">{{case_data['case']['initial_health_score']}}/100</p>
+                    {% if effectiveness %}
+                    <span class="improvement">
+                        {% if effectiveness['improvement'] > 0 %}
+                        <i class="fas fa-arrow-up text-success"></i> +{{effectiveness['improvement']}} points
+                        {% elif effectiveness['improvement'] < 0 %}
+                        <i class="fas fa-arrow-down text-danger"></i> {{effectiveness['improvement']}} points
+                        {% else %}
+                        <i class="fas fa-minus text-muted"></i> No change
+                        {% endif %}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="overview-card">
+                <div class="card-icon progress">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Progress Entries</h3>
+                    <p class="progress-count">{{case_data['progression']|length}}</p>
+                    <span class="last-update">
+                        {% if case_data['progression'] %}
+                        Last: {{case_data['progression'][-1]['analysis_date'][:10]}}
+                        {% else %}
+                        No updates yet
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <div class="overview-card">
+                <div class="card-icon treatment">
+                    <i class="fas fa-medkit"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Treatments Applied</h3>
+                    <p class="treatment-count">{{treatments|length}}</p>
+                    {% if effectiveness %}
+                    <span class="effectiveness">{{effectiveness['effectiveness_percentage']|round(1)}}% effective</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Chart -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2><i class="fas fa-chart-area"></i> Disease Progression Timeline</h2>
+                <div class="chart-controls">
+                    <button class="chart-btn active" onclick="showHealthChart()">Health Score</button>
+                    <button class="chart-btn" onclick="showConfidenceChart()">Confidence</button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Detailed Sections -->
+        <div class="details-grid">
+            <!-- Progression History -->
+            <div class="detail-section">
+                <h3><i class="fas fa-history"></i> Progression History</h3>
+                <div class="progression-timeline">
+                    <!-- Initial Entry -->
+                    <div class="timeline-item initial">
+                        <div class="timeline-marker">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-header">
+                                <h4>Initial Analysis</h4>
+                                <span class="timeline-date">{{case_data['case']['created_date'][:10]}}</span>
+                            </div>
+                            <div class="timeline-details">
+                                <div class="detail-row">
+                                    <span class="label">Disease:</span>
+                                    <span class="value">{{case_data['case']['initial_disease'].replace('___', ' - ').replace('_', ' ')}}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">Confidence:</span>
+                                    <span class="value">{{case_data['case']['initial_confidence']}}%</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">Health Score:</span>
+                                    <span class="value">{{case_data['case']['initial_health_score']}}/100</span>
+                                </div>
+                            </div>
+                            {% if case_data['case']['initial_image_path'] %}
+                            <div class="timeline-image">
+                                <img src="/{{case_data['case']['initial_image_path']}}" alt="Initial analysis" class="progression-img">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Progression Entries -->
+                    {% for entry in case_data['progression'] %}
+                    <div class="timeline-item">
+                        <div class="timeline-marker">
+                            <i class="fas fa-camera"></i>
+                        </div>
+                        <div class="timeline-content">
+                            <div class="timeline-header">
+                                <h4>Progress Update #{{loop.index}}</h4>
+                                <span class="timeline-date">{{entry['analysis_date'][:10]}}</span>
+                            </div>
+                            <div class="timeline-details">
+                                <div class="detail-row">
+                                    <span class="label">Disease:</span>
+                                    <span class="value">{{entry['disease_detected'].replace('___', ' - ').replace('_', ' ')}}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">Confidence:</span>
+                                    <span class="value">{{entry['confidence']}}%</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="label">Health Score:</span>
+                                    <span class="value">{{entry['health_score']}}/100</span>
+                                </div>
+                                {% if entry['treatment_applied'] %}
+                                <div class="detail-row">
+                                    <span class="label">Treatment Applied:</span>
+                                    <span class="value">{{entry['treatment_applied']}}</span>
+                                </div>
+                                {% endif %}
+                                {% if entry['notes'] %}
+                                <div class="detail-row">
+                                    <span class="label">Notes:</span>
+                                    <span class="value">{{entry['notes']}}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="timeline-image">
+                                <img src="/{{entry['image_path']}}" alt="Progress update" class="progression-img">
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Treatment Records -->
+            <div class="detail-section">
+                <h3><i class="fas fa-prescription-bottle"></i> Treatment Records</h3>
+                {% if treatments %}
+                <div class="treatments-list">
+                    {% for treatment in treatments %}
+                    <div class="treatment-card">
+                        <div class="treatment-header">
+                            <h4>{{treatment[2]}}</h4>
+                            <span class="treatment-date">{{treatment[3][:10]}}</span>
+                        </div>
+                        <div class="treatment-details">
+                            {% if treatment[4] %}
+                            <div class="detail-item">
+                                <i class="fas fa-pills"></i>
+                                <span>Dosage: {{treatment[4]}}</span>
+                            </div>
+                            {% endif %}
+                            {% if treatment[5] %}
+                            <div class="detail-item">
+                                <i class="fas fa-hand-holding-medical"></i>
+                                <span>Method: {{treatment[5]}}</span>
+                            </div>
+                            {% endif %}
+                            {% if treatment[6] > 0 %}
+                            <div class="detail-item">
+                                <i class="fas fa-dollar-sign"></i>
+                                <span>Cost: ${{treatment[6]}}</span>
+                            </div>
+                            {% endif %}
+                            {% if treatment[7] %}
+                            <div class="detail-item">
+                                <i class="fas fa-sticky-note"></i>
+                                <span>Notes: {{treatment[7]}}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-medkit"></i>
+                    <p>No treatments recorded yet</p>
+                    <button class="btn-primary" onclick="showAddTreatmentModal()">Record First Treatment</button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Yield Predictions -->
+            <div class="detail-section">
+                <h3><i class="fas fa-chart-bar"></i> Economic Impact Analysis</h3>
+                {% if yield_predictions %}
+                <div class="yield-cards">
+                    {% for prediction in yield_predictions %}
+                    <div class="yield-card">
+                        <div class="yield-header">
+                            <h4>Yield Prediction</h4>
+                            <span class="prediction-date">{{prediction[4][:10]}}</span>
+                        </div>
+                        <div class="yield-metrics">
+                            <div class="yield-metric">
+                                <span class="metric-label">Expected Loss</span>
+                                <span class="metric-value loss">{{prediction[2]}}%</span>
+                            </div>
+                            <div class="yield-metric">
+                                <span class="metric-label">Economic Impact</span>
+                                <span class="metric-value economic">${{prediction[3]}}</span>
+                            </div>
+                        </div>
+                        {% if prediction[5] %}
+                        <div class="harvest-recommendation-card">
+                            <h5><i class="fas fa-calendar-check"></i> Harvest Recommendation</h5>
+                            {% set harvest_data = prediction[5]|fromjson %}
+                            <div class="recommendation-content">
+                                <div class="urgency-badge urgency-{{harvest_data.urgency.lower()}}">
+                                    {{harvest_data.urgency}} Priority
+                                </div>
+                                <p class="recommendation-text">{{harvest_data.recommendation}}</p>
+                                <p class="action-text"><strong>Action:</strong> {{harvest_data.action}}</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-chart-bar"></i>
+                    <p>No yield predictions available</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Progression Modal -->
+    <div id="addProgressionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Progress Update</h3>
+                <span class="close" onclick="hideAddProgressionModal()">&times;</span>
+            </div>
+            <form id="addProgressionForm" method="POST" action="/add-progression/{{case_data['case']['id']}}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="progression_img">Upload New Image</label>
+                    <input type="file" id="progression_img" name="img" accept="image/*" required>
+                </div>
+                <div class="form-group">
+                    <label for="treatment_applied">Treatment Applied (Optional)</label>
+                    <input type="text" id="treatment_applied" name="treatment_applied" placeholder="e.g., Fungicide spray">
+                </div>
+                <div class="form-group">
+                    <label for="progression_notes">Notes</label>
+                    <textarea id="progression_notes" name="notes" rows="3" placeholder="Observations, changes noticed, etc."></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="hideAddProgressionModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Treatment Modal -->
+    <div id="addTreatmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Record Treatment</h3>
+                <span class="close" onclick="hideAddTreatmentModal()">&times;</span>
+            </div>
+            <form id="addTreatmentForm" method="POST" action="/add-treatment/{{case_data['case']['id']}}">
+                <div class="form-group">
+                    <label for="treatment_name">Treatment Name</label>
+                    <input type="text" id="treatment_name" name="treatment_name" required placeholder="e.g., Copper fungicide">
+                </div>
+                <div class="form-group">
+                    <label for="dosage">Dosage</label>
+                    <input type="text" id="dosage" name="dosage" placeholder="e.g., 2ml per liter">
+                </div>
+                <div class="form-group">
+                    <label for="method">Application Method</label>
+                    <select id="method" name="method">
+                        <option value="">Select method</option>
+                        <option value="Spray">Spray</option>
+                        <option value="Soil drench">Soil drench</option>
+                        <option value="Foliar application">Foliar application</option>
+                        <option value="Systemic">Systemic</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="cost">Cost ($)</label>
+                    <input type="number" id="cost" name="cost" step="0.01" min="0" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label for="treatment_notes">Notes</label>
+                    <textarea id="treatment_notes" name="notes" rows="3" placeholder="Additional information about the treatment"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="hideAddTreatmentModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Record Treatment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../static/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Chart.js configuration
+        let progressChart;
+        let currentChartType = 'health';
+
+        // Chart data from backend
+        const chartData = {
+            labels: [
+                '{{case_data["case"]["created_date"][:10]}}'{% for entry in case_data['progression'] %},
+                '{{entry["analysis_date"][:10]}}'{% endfor %}
+            ],
+            healthScores: [
+                {{case_data['case']['initial_health_score']}}{% for entry in case_data['progression'] %},
+                {{entry['health_score']}}{% endfor %}
+            ],
+            confidences: [
+                {{case_data['case']['initial_confidence']}}{% for entry in case_data['progression'] %},
+                {{entry['confidence']}}{% endfor %}
+            ]
+        };
+
+        // Initialize chart
+        function initChart() {
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            
+            progressChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Health Score',
+                        data: chartData.healthScores,
+                        borderColor: '#2e7d32',
+                        backgroundColor: 'rgba(46, 125, 50, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                stepSize: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Show health score chart
+        function showHealthChart() {
+            currentChartType = 'health';
+            updateChartButtons();
+            
+            progressChart.data.datasets[0].label = 'Health Score';
+            progressChart.data.datasets[0].data = chartData.healthScores;
+            progressChart.data.datasets[0].borderColor = '#2e7d32';
+            progressChart.data.datasets[0].backgroundColor = 'rgba(46, 125, 50, 0.1)';
+            progressChart.options.scales.y.max = 100;
+            progressChart.update();
+        }
+
+        // Show confidence chart
+        function showConfidenceChart() {
+            currentChartType = 'confidence';
+            updateChartButtons();
+            
+            progressChart.data.datasets[0].label = 'Confidence (%)';
+            progressChart.data.datasets[0].data = chartData.confidences;
+            progressChart.data.datasets[0].borderColor = '#ff9800';
+            progressChart.data.datasets[0].backgroundColor = 'rgba(255, 152, 0, 0.1)';
+            progressChart.options.scales.y.max = 100;
+            progressChart.update();
+        }
+
+        // Update chart button states
+        function updateChartButtons() {
+            document.querySelectorAll('.chart-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (currentChartType === 'health') {
+                document.querySelector('.chart-btn:first-child').classList.add('active');
+            } else {
+                document.querySelector('.chart-btn:last-child').classList.add('active');
+            }
+        }
+
+        // Initialize chart when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initChart();
+        });
+
+        // Modal functions
+        function showAddProgressionModal() {
+            // Implementation for progression modal
+            alert('Add progression modal functionality would go here');
+        }
+
+        function hideAddProgressionModal() {
+            document.getElementById('addProgressionModal').style.display = 'none';
+        }
+
+        function showAddTreatmentModal() {
+            // Implementation for treatment modal
+            alert('Add treatment modal functionality would go here');
+        }
+
+        function hideAddTreatmentModal() {
+            document.getElementById('addTreatmentModal').style.display = 'none';
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const progressionModal = document.getElementById('addProgressionModal');
+            const treatmentModal = document.getElementById('addTreatmentModal');
+            
+            if (event.target == progressionModal) {
+                progressionModal.style.display = 'none';
+            }
+            if (event.target == treatmentModal) {
+                treatmentModal.style.display = 'none';
+            }
+        }
+    </script>
+
+    <style>
+        .case-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 100px 2rem 2rem;
+        }
+
+        .case-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .case-title h1 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .case-meta {
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .case-meta span {
+            padding: 0.5rem 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .case-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .overview-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .overview-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card-icon.disease { background: linear-gradient(135deg, #f44336, #e57373); }
+        .card-icon.health { background: linear-gradient(135deg, #4caf50, #81c784); }
+        .card-icon.progress { background: linear-gradient(135deg, #2196f3, #64b5f6); }
+        .card-icon.treatment { background: linear-gradient(135deg, #ff9800, #ffb74d); }
+
+        .card-content h3 {
+            color: #333;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .card-content p {
+            color: #666;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .health-score {
+            color: #4caf50 !important;
+        }
+
+        .progress-count, .treatment-count {
+            color: #2196f3 !important;
+        }
+
+        .chart-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 3rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .chart-header h2 {
+            color: #333;
+            margin: 0;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chart-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .chart-btn.active {
+            background: #2e7d32;
+            color: white;
+            border-color: #2e7d32;
+        }
+
+        .chart-container {
+            height: 400px;
+            position: relative;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .detail-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .detail-section h3 {
+            color: #333;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .progression-timeline {
+            position: relative;
+        }
+
+        .progression-timeline::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: #e0e0e0;
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            padding-left: 60px;
+        }
+
+        .timeline-marker {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 40px;
+            height: 40px;
+            background: #2e7d32;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 1;
+        }
+
+        .timeline-item.initial .timeline-marker {
+            background: #ff9800;
+        }
+
+        .timeline-content {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .timeline-item.initial .timeline-content {
+            border-left-color: #ff9800;
+        }
+
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-header h4 {
+            color: #333;
+            margin: 0;
+        }
+
+        .timeline-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .timeline-details {
+            margin-bottom: 1rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-row .label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .detail-row .value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .progression-img {
+            width: 100%;
+            max-width: 200px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+
+        .treatment-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #ff9800;
+        }
+
+        .treatment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .treatment-header h4 {
+            color: #333;
+            margin: 0;
+        }
+
+        .treatment-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .treatment-details {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .detail-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .detail-item i {
+            color: #ff9800;
+            width: 16px;
+        }
+
+        .yield-card {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            border-left: 4px solid #4caf50;
+        }
+
+        .yield-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .yield-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .yield-metric {
+            text-align: center;
+        }
+
+        .yield-metric .metric-label {
+            display: block;
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 0.3rem;
+        }
+
+        .yield-metric .metric-value {
+            display: block;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .yield-metric .metric-value.loss {
+            color: #f44336;
+        }
+
+        .yield-metric .metric-value.economic {
+            color: #ff9800;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #ddd;
+            margin-bottom: 1rem;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            padding: 2rem 2rem 1rem;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .close {
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+            padding: 0 2rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-actions {
+            padding: 1rem 2rem 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .details-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .case-header {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .case-actions {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .case-actions button {
+                flex: 1;
+            }
+
+            .overview-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .timeline-item {
+                padding-left: 50px;
+            }
+
+            .timeline-marker {
+                width: 30px;
+                height: 30px;
+            }
+        }
+    </style>
+</body>
+</html>

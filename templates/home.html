@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CropSense - Disease Recognition System</title>
+    <link rel="icon" href="../static/images/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../static/css/style.css" />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="modern-navbar">
+      <div class="nav-container">
+        <div class="nav-brand">
+          <img
+            src="../static/images/logo.svg"
+            alt="CropSense"
+            class="nav-logo"
+          />
+          <span class="brand-text">CropSense</span>
+        </div>
+        <div class="nav-links">
+          <a href="#home" class="nav-link active">Home</a>
+          <a href="/disease-tracker" class="nav-link">Disease Tracker</a>
+          <a href="#about" class="nav-link">About</a>
+          <a href="#features" class="nav-link">Features</a>
+          <a href="#diseases" class="nav-link">Supported Diseases</a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+      <div class="hero-background">
+        <div class="hero-overlay"></div>
+      </div>
+      <div class="hero-content">
+        <div class="hero-text">
+          <h1 class="hero-title">
+            <span class="title-highlight">AI-Powered</span>
+            Plant Disease Detection
+          </h1>
+          <p class="hero-subtitle">
+            Protect your crops with advanced machine learning technology. Upload
+            a photo and get instant disease diagnosis with treatment
+            recommendations.
+          </p>
+          <div class="hero-stats">
+            <div class="stat-item">
+              <i class="fas fa-leaf"></i>
+              <span class="stat-number">39+</span>
+              <span class="stat-label">Disease Types</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-accuracy"></i>
+              <span class="stat-number">99%</span>
+              <span class="stat-label">Accuracy</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-clock"></i>
+              <span class="stat-number">< 5s</span>
+              <span class="stat-label">Analysis Time</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+          <div class="upload-card">
+            <div class="upload-header">
+              <i class="fas fa-camera-retro"></i>
+              <h2>Analyze Your Plant</h2>
+              <p>
+                Upload a clear image of the affected plant leaf for instant
+                diagnosis
+              </p>
+            </div>
+
+            <form
+              action="/upload/"
+              method="POST"
+              enctype="multipart/form-data"
+              class="upload-form"
+            >
+              <div class="file-upload-wrapper">
+                <input
+                  type="file"
+                  id="file-input"
+                  name="img"
+                  accept="image/png, image/jpeg, image/jpg"
+                  required
+                  hidden
+                />
+                <label for="file-input" class="file-upload-label">
+                  <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                  </div>
+                  <div class="upload-text">
+                    <span class="upload-title"
+                      >Drop your image here or click to browse</span
+                    >
+                    <span class="upload-subtitle"
+                      >Supports JPG, JPEG, PNG (Max 10MB)</span
+                    >
+                  </div>
+                </label>
+                <div class="file-preview" id="file-preview"></div>
+              </div>
+
+              <!-- Environmental Data Fields -->
+              <div class="env-fields">
+                <div class="form-group">
+                  <label for="soil-ph">Soil pH (optional)
+                    <i class="fas fa-info-circle" title="Use a simple soil pH meter or test kit. If unknown, leave blank."></i>
+                  </label>
+                  <input type="number" step="0.1" min="3" max="10" name="soil_ph" id="soil-ph" class="form-control" placeholder="e.g., 6.5">
+                </div>
+                <div class="form-group">
+                  <label for="temperature">Temperature (°C, optional)
+                    <i class="fas fa-info-circle" title="Outdoor temperature. Use a thermometer or auto-fill with weather."></i>
+                  </label>
+                  <input type="number" step="0.1" name="temperature" id="temperature" class="form-control" placeholder="e.g., 28">
+                </div>
+                <div class="form-group">
+                  <label for="humidity">Humidity (%RH, optional)
+                    <i class="fas fa-info-circle" title="Relative humidity. Use a hygrometer or auto-fill with weather."></i>
+                  </label>
+                  <input type="number" step="0.1" name="humidity" id="humidity" class="form-control" placeholder="e.g., 65">
+                </div>
+                <button type="button" class="btn btn-outline-success" id="fetch-weather-btn" style="margin-bottom: 1rem;">
+                  <i class="fas fa-map-marker-alt"></i> Use my location to auto-fill weather
+                </button>
+              </div>
+
+              <button type="submit" class="analyze-btn">
+                <i class="fas fa-microscope"></i>
+                Analyze Plant Disease
+              </button>
+            </form>
+
+            <!-- Results Section -->
+            {% if result %}
+            <div class="results-section">
+              <div class="results-header">
+                <i class="fas fa-check-circle"></i>
+                <h3>Analysis Complete</h3>
+              </div>
+
+              <div class="results-content">
+                <div class="result-image-container">
+                  <img
+                    src="{{imagepath}}"
+                    alt="Analyzed plant"
+                    class="result-image"
+                  />
+                  <div class="image-overlay">
+                    <i class="fas fa-search-plus"></i>
+                  </div>
+                </div>
+
+                <div class="result-details">
+                  <div class="disease-info">
+                    <!-- Primary Disease -->
+                    <div class="disease-name">
+                      <i class="fas fa-bug"></i>
+                      <h4>
+                        {{prediction['primary_disease']['name'].replace('___', ' - ').replace('_', ' ')}}
+                      </h4>
+                    </div>
+                    
+                    <!-- Advanced Metrics -->
+                    <div class="metrics-grid">
+                      <div class="metric-card confidence">
+                        <i class="fas fa-percentage"></i>
+                        <div class="metric-content">
+                          <span class="metric-value">{{prediction['confidence']}}%</span>
+                          <span class="metric-label">Confidence</span>
+                        </div>
+                      </div>
+                      
+                      <div class="metric-card severity">
+                        <i class="fas fa-thermometer-half"></i>
+                        <div class="metric-content">
+                          <span class="metric-value" style="color: {{prediction['severity_color']}}">{{prediction['severity']}}</span>
+                          <span class="metric-label">Severity</span>
+                        </div>
+                      </div>
+                      
+                      <div class="metric-card health">
+                        <i class="fas fa-heart"></i>
+                        <div class="metric-content">
+                          <span class="metric-value">{{prediction['health_score']}}/100</span>
+                          <span class="metric-label">Health Score</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Alternative Possibilities with Enhanced UI -->
+                    {% if prediction['top_predictions'] and prediction['top_predictions']|length > 1 %}
+                    <div class="alternative-predictions-section">
+                      <div class="section-header">
+                        <div class="header-icon">
+                          <i class="fas fa-search-plus"></i>
+                        </div>
+                        <div class="header-content">
+                          <h5>Alternative Possibilities</h5>
+                          <span class="header-subtitle">Other potential diagnoses to consider</span>
+                        </div>
+                      </div>
+                      
+                      <div class="predictions-grid">
+                        {% for pred in prediction['top_predictions'][1:3] %}
+                        <div class="prediction-card">
+                          <div class="prediction-header">
+                            <div class="prediction-icon">
+                              {% if 'healthy' in pred['name'].lower() %}
+                                <i class="fas fa-leaf prediction-healthy"></i>
+                              {% elif 'blight' in pred['name'].lower() %}
+                                <i class="fas fa-exclamation-triangle prediction-severe"></i>
+                              {% elif 'spot' in pred['name'].lower() %}
+                                <i class="fas fa-circle prediction-moderate"></i>
+                              {% elif 'rust' in pred['name'].lower() %}
+                                <i class="fas fa-shield-alt prediction-moderate"></i>
+                              {% elif 'rot' in pred['name'].lower() %}
+                                <i class="fas fa-times-circle prediction-severe"></i>
+                              {% else %}
+                                <i class="fas fa-bug prediction-disease"></i>
+                              {% endif %}
+                            </div>
+                            <div class="confidence-badge">
+                              <span class="confidence-value">{{pred['confidence']|round(1)}}%</span>
+                            </div>
+                          </div>
+                          
+                          <div class="prediction-content">
+                            <h6 class="prediction-name">{{pred['name']}}</h6>
+                            <div class="confidence-bar">
+                              <div class="confidence-fill" style="width: {{pred['confidence']}}%"></div>
+                            </div>
+                            <p class="prediction-description">
+                              {% if pred['details'] %}
+                                {{pred['details']['cause'][:80]}}{% if pred['details']['cause']|length > 80 %}...{% endif %}
+                              {% else %}
+                                Alternative diagnosis based on visual similarity
+                              {% endif %}
+                            </p>
+                          </div>
+                        </div>
+                        {% endfor %}
+                      </div>
+                      
+                      <div class="predictions-footer">
+                        <div class="info-note">
+                          <i class="fas fa-lightbulb"></i>
+                          <span>These alternatives have lower confidence but may be worth considering for comprehensive diagnosis</span>
+                        </div>
+                      </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Primary Disease Details -->
+                    <div class="info-section">
+                      <div class="info-item">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div class="info-content">
+                          <h5>Cause</h5>
+                          <p>{{prediction['primary_disease']['cause']}}</p>
+                        </div>
+                      </div>
+                      
+                      <div class="info-item">
+                        <i class="fas fa-medkit"></i>
+                        <div class="info-content">
+                          <h5>Treatment</h5>
+                          <p>{{prediction['primary_disease']['cure']}}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Environmental Data Display -->
+                    {% if prediction['environmental_data'] and (prediction['environmental_data']['soil_ph'] or prediction['environmental_data']['temperature'] or prediction['environmental_data']['humidity']) %}
+                    <div class="env-data-display">
+                      <h6><i class="fas fa-leaf"></i> Environmental Conditions</h6>
+                      <div class="env-data-grid">
+                        {% if prediction['environmental_data']['soil_ph'] %}
+                        <div class="env-data-item">
+                          <span class="env-value">{{prediction['environmental_data']['soil_ph']}}</span>
+                          <span class="env-label">Soil pH</span>
+                        </div>
+                        {% endif %}
+                        {% if prediction['environmental_data']['temperature'] %}
+                        <div class="env-data-item">
+                          <span class="env-value">{{prediction['environmental_data']['temperature']}}°C</span>
+                          <span class="env-label">Temperature</span>
+                        </div>
+                        {% endif %}
+                        {% if prediction['environmental_data']['humidity'] %}
+                        <div class="env-data-item">
+                          <span class="env-value">{{prediction['environmental_data']['humidity']}}%</span>
+                          <span class="env-label">Humidity</span>
+                        </div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    {% endif %}
+
+                  </div>
+
+                  <!-- Yield Prediction Section -->
+                  {% if prediction['yield_prediction'] %}
+                  <div class="yield-prediction-section">
+                    <h5><i class="fas fa-chart-bar"></i> Yield Impact Analysis</h5>
+                    <div class="yield-metrics">
+                      <div class="yield-metric">
+                        <span class="metric-label">Expected Yield Loss</span>
+                        <span class="metric-value loss">{{prediction['yield_prediction']['predicted_yield_loss_percentage']}}%</span>
+                      </div>
+                      <div class="yield-metric">
+                        <span class="metric-label">Economic Impact</span>
+                        <span class="metric-value economic">${{prediction['yield_prediction']['economic_loss_usd']}}</span>
+                      </div>
+                      <div class="yield-metric">
+                        <span class="metric-label">Crop Type</span>
+                        <span class="metric-value crop">{{prediction['yield_prediction']['crop_type']}}</span>
+                      </div>
+                    </div>
+                    
+                    {% if prediction['harvest_recommendation'] %}
+                    <div class="harvest-recommendation">
+                      <div class="recommendation-header">
+                        <i class="fas fa-calendar-check"></i>
+                        <span class="urgency-{{prediction['harvest_recommendation']['urgency'].lower()}}">
+                          {{prediction['harvest_recommendation']['urgency']}} Priority
+                        </span>
+                      </div>
+                      <p class="recommendation-text">{{prediction['harvest_recommendation']['recommendation']}}</p>
+                      <p class="action-text"><strong>Action:</strong> {{prediction['harvest_recommendation']['action']}}</p>
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+
+                  <!-- Educational Tips Section -->
+                  <div class="educational-tips">
+                    <h5><i class="fas fa-graduation-cap"></i> Educational Tips & Best Practices</h5>
+                    <div class="tips-grid">
+                      <div class="tip-item">
+                        <h6><i class="fas fa-shield-alt"></i> Prevention Tips</h6>
+                        <p>Maintain proper plant spacing for good air circulation, water at the base of plants to avoid wetting leaves, and remove infected plant debris promptly to prevent disease spread.</p>
+                      </div>
+                      <div class="tip-item">
+                        <h6><i class="fas fa-eye"></i> Monitoring Guidelines</h6>
+                        <p>Check your plants regularly for early signs of disease. Look for discoloration, spots, wilting, or unusual growth patterns. Early detection improves treatment success.</p>
+                      </div>
+                      <div class="tip-item">
+                        <h6><i class="fas fa-user-md"></i> When to Consult Experts</h6>
+                        <p>Seek professional help if: disease spreads rapidly, multiple plants are affected, treatments don't work within 1-2 weeks, or if you're unsure about the diagnosis.</p>
+                      </div>
+                      <div class="tip-item">
+                        <h6><i class="fas fa-seedling"></i> Cultural Practices</h6>
+                        <p>Use disease-resistant varieties when possible, rotate crops annually, maintain healthy soil with proper pH and nutrients, and avoid over-fertilization which can stress plants.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="action-buttons">
+                    <button
+                      class="btn-secondary"
+                      onclick="window.location.reload()"
+                    >
+                      <i class="fas fa-redo"></i>
+                      Analyze Another
+                    </button>
+                    <button class="btn-success" onclick="createTrackingCase()">
+                      <i class="fas fa-chart-line"></i>
+                      Track Progress
+                    </button>
+                    <button class="btn-primary" onclick="downloadReport()">
+                      <i class="fas fa-download"></i>
+                      Download Report
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section" id="about">
+      <div class="container">
+        <div class="about-content">
+          <div class="about-text">
+            <div class="section-header">
+              <h2>About CropSense</h2>
+              <p>Revolutionizing agriculture through artificial intelligence</p>
+            </div>
+
+            <div class="about-description">
+              <p>
+                CropSense is an advanced plant disease recognition system that
+                leverages cutting-edge machine learning technology to help
+                farmers, gardeners, and agricultural professionals identify and
+                treat plant diseases quickly and accurately.
+              </p>
+
+              <p>
+                Our system uses a sophisticated EfficientNetB4 deep learning
+                model trained on thousands of plant images to detect 39
+                different types of plant diseases across multiple crop varieties
+                including apples, tomatoes, corn, grapes, potatoes, and more.
+              </p>
+
+              <div class="mission-vision">
+                <div class="mission">
+                  <h4><i class="fas fa-target"></i> Our Mission</h4>
+                  <p>
+                    To empower farmers worldwide with AI-driven tools that
+                    protect crops, increase yields, and promote sustainable
+                    agriculture.
+                  </p>
+                </div>
+
+                <div class="vision">
+                  <h4><i class="fas fa-eye"></i> Our Vision</h4>
+                  <p>
+                    A world where every farmer has access to intelligent crop
+                    protection technology, reducing food waste and ensuring
+                    global food security.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="about-stats">
+              <div class="about-stat">
+                <span class="stat-number">99%</span>
+                <span class="stat-label">Accuracy Rate</span>
+              </div>
+              <div class="about-stat">
+                <span class="stat-number">39+</span>
+                <span class="stat-label">Disease Types</span>
+              </div>
+              <div class="about-stat">
+                <span class="stat-number">10+</span>
+                <span class="stat-label">Crop Varieties</span>
+              </div>
+              <div class="about-stat">
+                <span class="stat-number">24/7</span>
+                <span class="stat-label">Availability</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-image">
+            <div class="image-container">
+              <div class="floating-card card-1">
+                <i class="fas fa-microscope"></i>
+                <span>AI Analysis</span>
+              </div>
+              <div class="floating-card card-2">
+                <i class="fas fa-leaf"></i>
+                <span>Plant Health</span>
+              </div>
+              <div class="floating-card card-3">
+                <i class="fas fa-chart-line"></i>
+                <span>Crop Monitoring</span>
+              </div>
+              <div class="about-bg-circle"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="technology-section">
+          <h3>Powered by Advanced Technology</h3>
+          <div class="tech-grid">
+            <div class="tech-item">
+              <i class="fas fa-robot"></i>
+              <h4>Deep Learning</h4>
+              <p>EfficientNetB4 architecture for superior image recognition</p>
+            </div>
+            <div class="tech-item">
+              <i class="fas fa-database"></i>
+              <h4>Big Data Training</h4>
+              <p>Model trained on extensive agricultural datasets</p>
+            </div>
+            <div class="tech-item">
+              <i class="fas fa-desktop"></i>
+              <h4>Web-Based Platform</h4>
+              <p>Accessible from any device, anywhere</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section" id="features">
+      <div class="container">
+        <div class="section-header">
+          <h2>Why Choose CropSense?</h2>
+          <p>Advanced technology meets agricultural expertise</p>
+        </div>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-brain"></i>
+            </div>
+            <h3>AI-Powered Detection</h3>
+            <p>
+              Advanced EfficientNet model trained on thousands of plant images
+              for accurate disease identification.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-bolt"></i>
+            </div>
+            <h3>Instant Results</h3>
+            <p>
+              Get disease diagnosis and treatment recommendations in under 5
+              seconds.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">
+              <i class="fas fa-seedling"></i>
+            </div>
+            <h3>Multiple Crops</h3>
+            <p>
+              Supports detection for apples, tomatoes, corn, grapes, potatoes,
+              and many more crops.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Supported Diseases Section -->
+    <section class="diseases-section" id="diseases">
+      <div class="container">
+        <div class="section-header">
+          <h2>Supported Plant Diseases</h2>
+          <p>
+            Our AI can detect 39 different plant diseases across multiple crop
+            varieties
+          </p>
+        </div>
+
+        <div class="diseases-grid">
+          <!-- Apple Diseases -->
+          <div class="crop-category">
+            <div class="crop-header">
+              <i class="fas fa-apple-alt"></i>
+              <h3>Apple</h3>
+              <span class="disease-count">4 conditions</span>
+            </div>
+            <div class="disease-list">
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Apple Scab</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Black Rot</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Cedar Apple Rust</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tomato Diseases -->
+          <div class="crop-category">
+            <div class="crop-header">
+              <i class="fas fa-seedling"></i>
+              <h3>Tomato</h3>
+              <span class="disease-count">10 conditions</span>
+            </div>
+            <div class="disease-list">
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Bacterial Spot</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Early Blight</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Late Blight</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Leaf Mold</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Septoria Leaf Spot</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Spider Mites</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Target Spot</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Yellow Leaf Curl Virus</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Mosaic Virus</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Corn Diseases -->
+          <div class="crop-category">
+            <div class="crop-header">
+              <i class="fas fa-corn"></i>
+              <h3>Corn</h3>
+              <span class="disease-count">4 conditions</span>
+            </div>
+            <div class="disease-list">
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Cercospora Leaf Spot</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Common Rust</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Northern Leaf Blight</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grape Diseases -->
+          <div class="crop-category">
+            <div class="crop-header">
+              <i class="fas fa-grape-cluster"></i>
+              <h3>Grape</h3>
+              <span class="disease-count">4 conditions</span>
+            </div>
+            <div class="disease-list">
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Black Rot</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Esca (Black Measles)</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Leaf Blight</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Potato Diseases -->
+          <div class="crop-category">
+            <div class="crop-header">
+              <i class="fas fa-potato"></i>
+              <h3>Potato</h3>
+              <span class="disease-count">3 conditions</span>
+            </div>
+            <div class="disease-list">
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Early Blight</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Late Blight</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Other Crops -->
+          <div class="crop-category">
+            <div class="crop-header">
+              <i class="fas fa-leaf"></i>
+              <h3>Other Crops</h3>
+              <span class="disease-count">14 conditions</span>
+            </div>
+            <div class="disease-list">
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Blueberry - Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Cherry - Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Cherry - Powdery Mildew</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Orange - Citrus Greening</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Peach - Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Peach - Bacterial Spot</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Bell Pepper - Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Bell Pepper - Bacterial Spot</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Raspberry - Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Soybean - Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Squash - Powdery Mildew</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot healthy"></i>
+                <span>Strawberry - Healthy</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot disease"></i>
+                <span>Strawberry - Leaf Scorch</span>
+              </div>
+              <div class="disease-item">
+                <i class="fas fa-circle-dot"></i>
+                <span>Background (No Plant)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="diseases-footer">
+          <div class="legend">
+            <div class="legend-item">
+              <i class="fas fa-circle-dot healthy"></i>
+              <span>Healthy Plant</span>
+            </div>
+            <div class="legend-item">
+              <i class="fas fa-circle-dot disease"></i>
+              <span>Disease Detected</span>
+            </div>
+            <div class="legend-item">
+              <i class="fas fa-circle-dot"></i>
+              <span>Background/Other</span>
+            </div>
+          </div>
+          <div class="upload-reminder">
+            <p>
+              <strong>Tip:</strong> For best results, upload clear, well-lit
+              images of individual leaves showing disease symptoms.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Plant Health Chatbot -->
+    <div id="chatbot-fab" style="position:fixed;bottom:32px;right:32px;z-index:9999;background:#2e7d32;color:white;width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.2);cursor:pointer;font-size:2rem;">
+      <i class="fas fa-comments"></i>
+    </div>
+    <div id="chatbot-window" style="position:fixed;bottom:100px;right:32px;z-index:10000;width:450px;max-width:95vw;height:500px;background:white;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.25);display:none;flex-direction:column;overflow:hidden;">
+      <div style="background:#2e7d32;color:white;padding:1rem;font-weight:600;display:flex;align-items:center;justify-content:space-between;">
+        <span><i class="fas fa-robot"></i> Plant Health Chatbot</span>
+        <span id="chatbot-close" style="cursor:pointer;font-size:1.2rem;">&times;</span>
+      </div>
+      <div id="chatbot-messages" style="flex:1;max-height:400px;overflow-y:auto;padding:1rem;background:#f8f9fa;"></div>
+      <form id="chatbot-form" style="display:flex;border-top:1px solid #eee;">
+        <input id="chatbot-input" type="text" placeholder="Ask about plant health..." autocomplete="off" style="flex:1;padding:0.75rem;border:none;font-size:1rem;outline:none;">
+        <button type="submit" style="background:#2e7d32;color:white;border:none;padding:0 1.2rem;font-size:1.2rem;cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
+      </form>
+    </div>
+    <script>
+      // Floating button toggles chat window
+      document.getElementById('chatbot-fab').onclick = function() {
+        document.getElementById('chatbot-window').style.display = 'flex';
+        this.style.display = 'none';
+      };
+      document.getElementById('chatbot-close').onclick = function() {
+        document.getElementById('chatbot-window').style.display = 'none';
+        document.getElementById('chatbot-fab').style.display = 'flex';
+      };
+      // Chatbot logic
+      const chatbotForm = document.getElementById('chatbot-form');
+      const chatbotInput = document.getElementById('chatbot-input');
+      const chatbotMessages = document.getElementById('chatbot-messages');
+      const GEMINI_API_KEY = 'AIzaSyAZBvKbYGX71xcuLx4xgyDic0L42x6fy30';
+      const SYSTEM_PROMPT = `You are a helpful, friendly plant health assistant for farmers. Answer questions about plant diseases, symptoms, treatments, prevention, and best practices in simple, clear language. 
+
+IMPORTANT: Format your responses in plain text without any markdown formatting (no asterisks, bold, or special characters). Use simple bullet points (•) and numbered lists. Keep responses practical and easy to read.
+
+If you don't know, say so. Always encourage sustainable and safe farming.`;
+      function appendMessage(text, sender) {
+        const msg = document.createElement('div');
+        msg.style.margin = '0.5rem 0';
+        msg.style.textAlign = sender === 'user' ? 'right' : 'left';
+        
+        // Clean up the text formatting for bot responses
+        let cleanText = text;
+        if (sender === 'bot') {
+          cleanText = cleanMarkdownFormatting(text);
+        }
+        
+        msg.innerHTML = `<span style="display:inline-block;max-width:80%;padding:0.5rem 1rem;border-radius:12px;${sender==='user'?'background:#e0f2f1;color:#00695c;':'background:#e8f5e9;color:#2e7d32;'} white-space:pre-line;">${cleanText}</span>`;
+        chatbotMessages.appendChild(msg);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+      }
+      
+      // Function to clean markdown formatting
+      function cleanMarkdownFormatting(text) {
+        return text
+          // Remove ** marks
+          .replace(/\*\*/g, '')
+          // Remove * marks
+          .replace(/\*/g, '')
+          // Convert numbered lists to proper format
+          .replace(/^\d+\.\s*\*\s*/gm, (match) => {
+            const number = match.match(/\d+/)[0];
+            return `${number}. `;
+          })
+          // Convert bullet points to proper format
+          .replace(/^\s*\*\s*/gm, '• ')
+          // Clean up extra spaces
+          .replace(/\n\s*\n/g, '\n\n')
+          .trim();
+      }
+      chatbotForm.onsubmit = async function(e) {
+        e.preventDefault();
+        const userMsg = chatbotInput.value.trim();
+        if (!userMsg) return;
+        appendMessage(userMsg, 'user');
+        chatbotInput.value = '';
+        appendMessage('<i class="fas fa-spinner fa-spin"></i> Thinking...', 'bot');
+        
+        // Gemini API call with correct format
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: `${SYSTEM_PROMPT}\n\nUser Question: ${userMsg}\n\nPlease provide a helpful, practical answer for farmers.`
+                }]
+              }],
+              generationConfig: {
+                temperature: 0.7,
+                topK: 40,
+                topP: 0.95,
+                maxOutputTokens: 1024,
+              }
+            })
+          });
+          
+          const data = await res.json();
+          // Remove spinner
+          chatbotMessages.removeChild(chatbotMessages.lastChild);
+          
+          if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+            const response = data.candidates[0].content.parts[0].text;
+            appendMessage(response, 'bot');
+          } else {
+            // Fallback response for common questions
+            const fallbackResponse = getFallbackResponse(userMsg);
+            appendMessage(fallbackResponse, 'bot');
+          }
+        } catch (err) {
+          console.error('Chatbot API Error:', err);
+          chatbotMessages.removeChild(chatbotMessages.lastChild);
+          // Fallback response for API errors
+          const fallbackResponse = getFallbackResponse(userMsg);
+          appendMessage(fallbackResponse, 'bot');
+        }
+      };
+      
+      // Fallback responses for common questions
+      function getFallbackResponse(userMsg) {
+        const question = userMsg.toLowerCase();
+        
+        if (question.includes('insect') || question.includes('pest') || question.includes('bug')) {
+          return `Here are effective ways to safeguard crops from insects:
+
+1. NATURAL METHODS:
+   • Plant companion crops (marigolds, basil, garlic)
+   • Use neem oil spray (mix 2ml neem oil + 1 liter water)
+   • Apply diatomaceous earth around plants
+   • Use garlic or chili pepper sprays
+
+2. PHYSICAL BARRIERS:
+   • Use fine mesh nets to cover plants
+   • Install yellow sticky traps
+   • Create barriers with crushed eggshells
+   • Use floating row covers
+
+3. CULTURAL PRACTICES:
+   • Rotate crops annually
+   • Remove plant debris regularly
+   • Maintain proper spacing between plants
+   • Time planting to avoid peak pest seasons
+
+4. BIOLOGICAL CONTROL:
+   • Encourage beneficial insects (ladybugs, lacewings)
+   • Use Bacillus thuringiensis (Bt) for caterpillars
+   • Attract birds with feeders and water
+   • Plant nectar-rich flowers for pollinators
+
+5. CHEMICAL CONTROL (Last Resort):
+   • Use organic pesticides like pyrethrin
+   • Apply early morning or evening
+   • Follow label instructions carefully
+   • Target specific pests, not broad spectrum
+
+Start with natural methods first, as they're safer and more sustainable for long-term crop health!`;
+        }
+        
+        if (question.includes('disease') || question.includes('fungus') || question.includes('mold')) {
+          return `To prevent plant diseases:
+
+1. GOOD AIR CIRCULATION:
+   • Space plants properly for ventilation
+   • Prune dense foliage regularly
+   • Avoid overcrowding plants
+
+2. WATER MANAGEMENT:
+   • Water at the base, avoid wetting leaves
+   • Water early morning to allow drying
+   • Use drip irrigation when possible
+
+3. SANITATION PRACTICES:
+   • Disinfect pruning tools between plants
+   • Remove and destroy infected plant parts
+   • Clean garden equipment regularly
+
+4. PREVENTIVE MEASURES:
+   • Use disease-resistant varieties
+   • Rotate crops annually
+   • Apply organic fungicides preventively
+
+5. MONITORING:
+   • Check plants regularly for symptoms
+   • Look for spots, wilting, or unusual growth
+   • Act quickly when problems are detected
+
+Early detection and prevention are key to maintaining healthy crops!`;
+        }
+        
+        if (question.includes('water') || question.includes('irrigation')) {
+          return `Smart watering tips for healthy plants:
+
+1. WATERING TECHNIQUES:
+   • Water deeply, not frequently
+   • Give plants a good soak to reach roots
+   • Avoid light sprinkles that only wet surface
+
+2. TIMING:
+   • Water early morning to reduce evaporation
+   • Avoid evening watering to prevent fungal growth
+   • Adjust frequency based on weather conditions
+
+3. SOIL MONITORING:
+   • Check soil moisture 2 inches deep
+   • Water when soil feels dry to touch
+   • Use moisture meters for accuracy
+
+4. EFFICIENT METHODS:
+   • Use soaker hoses or drip irrigation
+   • Group plants with similar water needs
+   • Apply mulch to retain moisture
+
+5. SIGNS OF PROBLEMS:
+   • Yellow leaves often indicate overwatering
+   • Wilting leaves suggest underwatering
+   • Adjust watering based on plant response
+
+Remember: Deep, infrequent watering promotes strong root development!`;
+        }
+        
+        return `I'm here to help with plant health questions! You can ask me about:\n\n• Insect and pest control\n• Plant diseases and prevention\n• Watering and care tips\n• Soil health and fertilization\n• Organic farming methods\n• Treatment recommendations\n\nTry asking a specific question about your plants!`;
+      }
+    </script>
+    <script src="../static/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // File upload preview
+      document
+        .getElementById("file-input")
+        .addEventListener("change", function (e) {
+          const file = e.target.files[0];
+          const preview = document.getElementById("file-preview");
+
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              preview.innerHTML = `
+                        <div class="preview-image">
+                            <img src="${e.target.result}" alt="Preview">
+                            <div class="preview-info">
+                                <span class="file-name">${file.name}</span>
+                                <span class="file-size">${(
+                                  file.size /
+                                  1024 /
+                                  1024
+                                ).toFixed(2)} MB</span>
+                            </div>
+                        </div>
+                    `;
+              preview.style.display = "block";
+            };
+            reader.readAsDataURL(file);
+          }
+        });
+
+      // Create tracking case function
+      function createTrackingCase() {
+        {% if result %}
+        const plantName = prompt("Enter a name for this plant case:");
+        if (plantName) {
+          const predictionData = {
+            primary_disease: {
+              name: "{{prediction['primary_disease']['name']}}",
+              cause: "{{prediction['primary_disease']['cause']}}",
+              cure: "{{prediction['primary_disease']['cure']}}"
+            },
+            confidence: {{prediction['confidence']}},
+            severity: "{{prediction['severity']}}",
+            health_score: {{prediction['health_score']}}
+          };
+          
+          const imagePath = "{{imagepath}}";
+          
+          // Send data to create case
+          fetch('/api/create-case-from-analysis', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              plant_name: plantName,
+              prediction_data: predictionData,
+              image_path: imagePath,
+              notes: 'Initial analysis case'
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert('Tracking case created successfully!');
+              window.location.href = `/case/${data.case_id}`;
+            } else {
+              alert('Error creating case: ' + data.error);
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating tracking case.');
+          });
+        }
+        {% else %}
+        alert('No analysis results available. Please analyze an image first.');
+        {% endif %}
+      }
+
+      // Download report function
+      function downloadReport() {
+        {% if result %}
+        try {
+          // Prepare the prediction data for the report
+          const predictionData = {
+            primary_disease: {
+              name: "{{prediction['primary_disease']['name']}}",
+              cause: "{{prediction['primary_disease']['cause']}}",
+              cure: "{{prediction['primary_disease']['cure']}}"
+            },
+            confidence: {{prediction['confidence']}},
+            severity: "{{prediction['severity']}}",
+            severity_color: "{{prediction['severity_color']}}",
+            health_score: {{prediction['health_score']}},
+            top_predictions: [
+              {% for pred in prediction['top_predictions'] %}
+              {
+                name: "{{pred['name']}}",
+                confidence: {{pred['confidence']}},
+                details: {
+                  name: "{{pred['details']['name']}}",
+                  cause: "{{pred['details']['cause']}}",
+                  cure: "{{pred['details']['cure']}}"
+                }
+              }{% if not loop.last %},{% endif %}
+              {% endfor %}
+            ]
+          };
+          
+          const imagePath = "{{imagepath}}";
+          
+          // Encode the data for URL transmission
+          const encodedPredictionData = encodeURIComponent(JSON.stringify(predictionData));
+          const encodedImagePath = encodeURIComponent(imagePath);
+          
+          // Create download URL
+          const downloadUrl = `/download-report?prediction_data=${encodedPredictionData}&image_path=${encodedImagePath}`;
+          
+          // Show loading message
+          const downloadBtn = document.querySelector('.btn-primary');
+          const originalText = downloadBtn.innerHTML;
+          downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Report...';
+          downloadBtn.disabled = true;
+          
+          // Create a temporary link and trigger download
+          const link = document.createElement('a');
+          link.href = downloadUrl;
+          link.download = 'plant_disease_report.pdf';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Reset button after a delay
+          setTimeout(() => {
+            downloadBtn.innerHTML = originalText;
+            downloadBtn.disabled = false;
+          }, 3000);
+          
+        } catch (error) {
+          console.error('Error generating report:', error);
+          alert('Error generating report. Please try again.');
+        }
+        {% else %}
+        alert('No analysis results available. Please analyze an image first.');
+        {% endif %}
+      }
+
+      // Create tracking case function
+      function createTrackingCase() {
+        {% if result %}
+        // Show modal for case creation
+        const modal = document.createElement('div');
+        modal.className = 'create-case-modal';
+        modal.style.display = 'flex';
+        modal.innerHTML = `
+          <div class="create-case-content">
+            <div class="case-form-header">
+              <h3><i class="fas fa-seedling"></i> Create Disease Tracking Case</h3>
+              <p>Start monitoring this plant's health progression over time</p>
+            </div>
+            <div class="case-form-body">
+              <form id="createCaseForm">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Plant Name/ID</label>
+                    <input type="text" name="plant_name" class="form-control" required placeholder="e.g., Apple Tree #1">
+                  </div>
+                  <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" name="location" class="form-control" placeholder="Garden, Field, etc.">
+                  </div>
+                </div>
+                <div class="form-group form-group-full">
+                  <label>Initial Notes</label>
+                  <textarea name="notes" class="form-control" rows="3" placeholder="Initial observations, symptoms noticed, etc."></textarea>
+                </div>
+                <div class="form-actions">
+                  <button type="button" class="btn-secondary" onclick="closeCreateCaseModal()">Cancel</button>
+                  <button type="submit" class="btn-success">
+                    <i class="fas fa-plus"></i> Create Case
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Handle form submission
+        document.getElementById('createCaseForm').addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(this);
+          
+          // Add prediction data
+          const predictionData = {
+            primary_disease: {
+              name: "{{prediction['primary_disease']['name']}}",
+              cause: "{{prediction['primary_disease']['cause']}}",
+              cure: "{{prediction['primary_disease']['cure']}}"
+            },
+            confidence: {{prediction['confidence']}},
+            severity: "{{prediction['severity']}}",
+            health_score: {{prediction['health_score']}}
+          };
+          
+          formData.append('prediction_data', JSON.stringify(predictionData));
+          formData.append('image_path', "{{imagepath}}");
+          
+          // Show loading
+          const submitBtn = this.querySelector('button[type="submit"]');
+          const originalText = submitBtn.innerHTML;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+          submitBtn.disabled = true;
+          
+          fetch('/create-case', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              closeCreateCaseModal();
+              // Show success message and redirect
+              alert('Disease tracking case created successfully!');
+              window.location.href = `/case/${data.case_id}`;
+            } else {
+              alert('Error creating case: ' + data.error);
+              submitBtn.innerHTML = originalText;
+              submitBtn.disabled = false;
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Error creating case');
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+          });
+        });
+        
+        {% else %}
+        alert('Please analyze a plant image first to create a tracking case.');
+        {% endif %}
+      }
+      
+      function closeCreateCaseModal() {
+        const modal = document.querySelector('.create-case-modal');
+        if (modal) {
+          modal.remove();
+        }
+      }
+
+      // Smooth scrolling for navigation (only for anchor links)
+      document.querySelectorAll(".nav-link").forEach((link) => {
+        link.addEventListener("click", function (e) {
+          const href = this.getAttribute("href");
+          
+          // Only apply smooth scrolling to anchor links (starting with #)
+          if (href.startsWith("#")) {
+            e.preventDefault();
+            const target = document.querySelector(href);
+            if (target) {
+              target.scrollIntoView({ behavior: "smooth" });
+            }
+          }
+          // For other links (like /disease-tracker), let them navigate normally
+        });
+      });
+
+      // Weather API integration
+      document.getElementById('fetch-weather-btn').addEventListener('click', function() {
+        if (!navigator.geolocation) {
+          alert('Geolocation is not supported by your browser.');
+          return;
+        }
+        const btn = this;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Fetching...';
+        navigator.geolocation.getCurrentPosition(function(position) {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=cd33ddbf52f00c79fbd1147df71809c3&units=metric`)
+            .then(response => response.json())
+            .then(data => {
+              if (data.main) {
+                document.getElementById('temperature').value = data.main.temp;
+                document.getElementById('humidity').value = data.main.humidity;
+              } else {
+                alert('Could not fetch weather data.');
+              }
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Use my location to auto-fill weather';
+            })
+            .catch(() => {
+              alert('Could not fetch weather data.');
+              btn.disabled = false;
+              btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Use my location to auto-fill weather';
+            });
+        }, function() {
+          alert('Unable to retrieve your location.');
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Use my location to auto-fill weather';
+        });
+      });
+    </script>
+  </body>
+</html>
