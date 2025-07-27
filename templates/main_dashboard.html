@@ -60,49 +60,193 @@
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <h2><i class="fas fa-bolt"></i> Quick Actions</h2>
-            <div class="actions-grid">
-                <a href="/" class="action-card">
-                    <div class="action-icon">
-                        <i class="fas fa-camera"></i>
+        <!-- Zig-Zag Layout -->
+        <div class="zigzag-container">
+            <!-- Row 1: AI-Powered Detection (Left) + Quick Actions (Right) -->
+            <div class="zigzag-row">
+                <div class="zigzag-card left-card hero-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                        <h2>AI-Powered Plant Disease Detection</h2>
                     </div>
-                    <div class="action-content">
-                        <h3>Analyze Plant</h3>
-                        <p>Upload image for instant disease detection</p>
+                    <div class="card-content">
+                        <p>Advanced machine learning technology for instant disease diagnosis with 99%+ accuracy</p>
+                        <div class="feature-highlights">
+                            <div class="highlight-item">
+                                <i class="fas fa-leaf"></i>
+                                <span>39+ Disease Types</span>
+                            </div>
+                            <div class="highlight-item">
+                                <i class="fas fa-bullseye"></i>
+                                <span>99% Accuracy</span>
+                            </div>
+                            <div class="highlight-item">
+                                <i class="fas fa-clock"></i>
+                                <span>< 5s Analysis</span>
+                            </div>
+                        </div>
+                        <a href="#upload-section" class="card-action-btn" onclick="scrollToUpload()">
+                            <i class="fas fa-microscope"></i>
+                            Start Analysis
+                        </a>
                     </div>
-                </a>
+                </div>
 
-                <a href="/crop-calendar" class="action-card">
-                    <div class="action-icon">
-                        <i class="fas fa-calendar-plus"></i>
+                <div class="zigzag-card right-card actions-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <h2>Quick Actions</h2>
                     </div>
-                    <div class="action-content">
-                        <h3>Add Crop</h3>
-                        <p>Schedule new crop with AI recommendations</p>
+                    <div class="card-content">
+                        <div class="quick-actions-grid">
+                            <a href="/" class="quick-action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <div class="action-text">
+                                    <h4>Analyze Plant</h4>
+                                    <p>Upload & detect</p>
+                                </div>
+                            </a>
+                            <a href="/crop-calendar" class="quick-action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </div>
+                                <div class="action-text">
+                                    <h4>Add Crop</h4>
+                                    <p>Schedule planting</p>
+                                </div>
+                            </a>
+                            <a href="/treatment-advisor" class="quick-action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-user-md"></i>
+                                </div>
+                                <div class="action-text">
+                                    <h4>Get Treatment</h4>
+                                    <p>AI recommendations</p>
+                                </div>
+                            </a>
+                            <a href="/weather-dashboard" class="quick-action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-cloud-sun"></i>
+                                </div>
+                                <div class="action-text">
+                                    <h4>Weather Forecast</h4>
+                                    <p>Risk prediction</p>
+                                </div>
+                            </a>
+                            <a href="/analytics-dashboard" class="quick-action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-chart-bar"></i>
+                                </div>
+                                <div class="action-text">
+                                    <h4>Analytics</h4>
+                                    <p>Data insights</p>
+                                </div>
+                            </a>
+                            <a href="/disease-tracker" class="quick-action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="action-text">
+                                    <h4>Disease Tracker</h4>
+                                    <p>Monitor cases</p>
+                                </div>
+                            </a>
+                        </div>
                     </div>
-                </a>
+                </div>
+            </div>
 
-                <a href="/treatment-advisor" class="action-card">
-                    <div class="action-icon">
-                        <i class="fas fa-user-md"></i>
+            <!-- Row 2: Analyze Your Plant (Right) + Recent Disease Cases (Left) -->
+            <div class="zigzag-row reverse">
+                <div class="zigzag-card left-card cases-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h2>Recent Disease Cases</h2>
                     </div>
-                    <div class="action-content">
-                        <h3>Get Treatment</h3>
-                        <p>AI-powered treatment recommendations</p>
+                    <div class="card-content">
+                        {% if recent_cases %}
+                        <div class="cases-preview">
+                            {% for case in recent_cases[:3] %}
+                            <div class="case-preview-item">
+                                <div class="case-preview-icon">
+                                    <i class="fas fa-bug"></i>
+                                </div>
+                                <div class="case-preview-content">
+                                    <h5>{{case[1]}}</h5>
+                                    <p>{{case[2].replace('___', ' - ').replace('_', ' ')[:30]}}...</p>
+                                    <span class="severity-badge severity-{{case[3].lower()}}">{{case[3]}}</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="cases-stats">
+                            <div class="stat-item">
+                                <span class="stat-number">{{recent_cases|length}}</span>
+                                <span class="stat-label">Recent Cases</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-number">{{farm_health['avg_plant_health']}}</span>
+                                <span class="stat-label">Avg Health</span>
+                            </div>
+                        </div>
+                        {% else %}
+                        <div class="empty-cases">
+                            <i class="fas fa-leaf"></i>
+                            <h4>No recent cases</h4>
+                            <p>Your crops are healthy!</p>
+                        </div>
+                        {% endif %}
+                        <a href="/disease-tracker" class="card-action-btn">
+                            <i class="fas fa-list"></i>
+                            View All Cases
+                        </a>
                     </div>
-                </a>
+                </div>
 
-                <a href="/weather-dashboard" class="action-card">
-                    <div class="action-icon">
-                        <i class="fas fa-cloud-sun"></i>
+                <div class="zigzag-card right-card analyze-card">
+                    <div class="card-header">
+                        <div class="card-icon">
+                            <i class="fas fa-camera-retro"></i>
+                        </div>
+                        <h2>Analyze Your Plant</h2>
                     </div>
-                    <div class="action-content">
-                        <h3>Weather Forecast</h3>
-                        <p>Disease risk prediction & alerts</p>
+                    <div class="card-content">
+                        <p>Upload a clear image of the affected plant leaf for instant diagnosis</p>
+                        <div class="upload-preview">
+                            <div class="upload-icon-large">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <p>Drop image or click to browse</p>
+                            <small>JPG, JPEG, PNG (Max 10MB)</small>
+                        </div>
+                        <div class="analysis-features">
+                            <div class="feature-tag">
+                                <i class="fas fa-thermometer-half"></i>
+                                Environmental Data
+                            </div>
+                            <div class="feature-tag">
+                                <i class="fas fa-chart-line"></i>
+                                Yield Impact
+                            </div>
+                            <div class="feature-tag">
+                                <i class="fas fa-prescription-bottle"></i>
+                                Treatment Plans
+                            </div>
+                        </div>
+                        <a href="/" class="card-action-btn">
+                            <i class="fas fa-upload"></i>
+                            Upload Image
+                        </a>
                     </div>
-                </a>
+                </div>
             </div>
         </div>
 
@@ -563,6 +707,389 @@
             margin-bottom: 2rem;
         }
 
+        /* Zig-Zag Layout */
+        .zigzag-container {
+            margin-bottom: 3rem;
+        }
+
+        .zigzag-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 4rem;
+            align-items: start;
+        }
+
+        .zigzag-row.reverse {
+            direction: rtl;
+        }
+
+        .zigzag-row.reverse .zigzag-card {
+            direction: ltr;
+        }
+
+        .zigzag-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+            animation: slideInZigZag 0.8s ease-out;
+        }
+
+        /* Add alternating margin offsets for zig-zag effect */
+        .zigzag-row:nth-child(odd) .left-card {
+            margin-top: 0;
+        }
+
+        .zigzag-row:nth-child(odd) .right-card {
+            margin-top: 2rem;
+        }
+
+        .zigzag-row:nth-child(even) .left-card {
+            margin-top: 2rem;
+        }
+
+        .zigzag-row:nth-child(even) .right-card {
+            margin-top: 0;
+        }
+
+        .zigzag-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .zigzag-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #2e7d32, #4caf50, #66bb6a);
+        }
+
+        .left-card {
+            animation-delay: 0.2s;
+        }
+
+        .right-card {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes slideInZigZag {
+            0% {
+                opacity: 0;
+                transform: translateX(-50px) translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) translateY(0);
+            }
+        }
+
+        .zigzag-row:nth-child(even) .left-card {
+            animation: slideInZigZagReverse 0.8s ease-out 0.2s both;
+        }
+
+        .zigzag-row:nth-child(even) .right-card {
+            animation: slideInZigZagReverse 0.8s ease-out 0.4s both;
+        }
+
+        @keyframes slideInZigZagReverse {
+            0% {
+                opacity: 0;
+                transform: translateX(50px) translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateX(0) translateY(0);
+            }
+        }
+
+        .card-header {
+            padding: 2rem 2rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3rem;
+            flex-shrink: 0;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .card-content {
+            padding: 0 2rem 2rem;
+        }
+
+        .card-content p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Hero Card Specific Styles */
+        .hero-card {
+            background: linear-gradient(135deg, #e8f5e8, #f1f8e9);
+        }
+
+        .hero-card .card-icon {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+        }
+
+        .feature-highlights {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .highlight-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.8rem;
+            background: rgba(46, 125, 50, 0.1);
+            border-radius: 10px;
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
+        .highlight-item i {
+            font-size: 1.1rem;
+        }
+
+        /* Quick Actions Card */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .quick-action-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .quick-action-item:hover {
+            background: #e8f5e8;
+            transform: scale(1.02);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .quick-action-item .action-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .action-text h4 {
+            margin: 0 0 0.2rem 0;
+            font-size: 0.9rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .action-text p {
+            margin: 0;
+            font-size: 0.75rem;
+            color: #666;
+        }
+
+        /* Analyze Card */
+        .analyze-card {
+            background: linear-gradient(135deg, #f3e5f5, #e1f5fe);
+        }
+
+        .upload-preview {
+            text-align: center;
+            padding: 2rem;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 15px;
+            border: 2px dashed #2e7d32;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-icon-large {
+            font-size: 3rem;
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        .upload-preview p {
+            margin: 0.5rem 0;
+            color: #333;
+            font-weight: 500;
+        }
+
+        .upload-preview small {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .analysis-features {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            background: rgba(46, 125, 50, 0.1);
+            color: #2e7d32;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Cases Card */
+        .cases-preview {
+            margin-bottom: 1.5rem;
+        }
+
+        .case-preview-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+        }
+
+        .case-preview-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff5722, #ff7043);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .case-preview-content {
+            flex: 1;
+        }
+
+        .case-preview-content h5 {
+            margin: 0 0 0.3rem 0;
+            font-size: 0.9rem;
+            color: #333;
+        }
+
+        .case-preview-content p {
+            margin: 0 0 0.3rem 0;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .cases-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+        }
+
+        .cases-stats .stat-item {
+            text-align: center;
+        }
+
+        .cases-stats .stat-number {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2e7d32;
+        }
+
+        .cases-stats .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .empty-cases {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .empty-cases i {
+            font-size: 2.5rem;
+            color: #4caf50;
+            margin-bottom: 1rem;
+        }
+
+        .empty-cases h4 {
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        /* Card Action Button */
+        .card-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card-action-btn:hover {
+            background: linear-gradient(135deg, #1b5e20, #2e7d32);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
         .features-overview {
             margin-bottom: 3rem;
         }
@@ -684,13 +1211,44 @@
                 flex-wrap: wrap;
             }
 
-            .actions-grid {
+            /* Zig-Zag Layout Mobile */
+            .zigzag-row {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                margin-bottom: 2rem;
+            }
+
+            .zigzag-row.reverse {
+                direction: ltr;
+            }
+
+            .card-header {
+                padding: 1.5rem 1.5rem 1rem;
+            }
+
+            .card-content {
+                padding: 0 1.5rem 1.5rem;
+            }
+
+            .quick-actions-grid {
                 grid-template-columns: 1fr;
             }
 
-            .action-card {
+            .feature-highlights {
+                gap: 0.8rem;
+            }
+
+            .highlight-item {
+                padding: 0.6rem;
+            }
+
+            .analysis-features {
+                justify-content: center;
+            }
+
+            .cases-stats {
                 flex-direction: column;
-                text-align: center;
+                gap: 1rem;
             }
 
             .features-grid {
@@ -707,6 +1265,30 @@
             .alert-meta,
             .case-meta {
                 justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pinterest-container {
+                gap: 1rem;
+            }
+
+            .card-header h2 {
+                font-size: 1.2rem;
+            }
+
+            .card-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 1.1rem;
+            }
+
+            .upload-preview {
+                padding: 1.5rem;
+            }
+
+            .upload-icon-large {
+                font-size: 2.5rem;
             }
         }
     </style>
