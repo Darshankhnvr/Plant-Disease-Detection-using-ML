@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Treatment Advisor - CropSense</title>
+    <link rel="icon" href="../static/images/logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/weather-autofill.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="modern-navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="../static/images/logo.svg" alt="CropSense" class="nav-logo">
+                <span class="brand-text">CropSense</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/disease-tracker" class="nav-link">Disease Tracker</a>
+                <a href="/#about" class="nav-link">About</a>
+                <a href="/#features" class="nav-link">Features</a>
+                <a href="/#supported-diseases" class="nav-link">Supported Plant Diseases</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="advisor-container">
+        <div class="advisor-header">
+            <h1><i class="fas fa-user-md"></i> AI Treatment Advisor</h1>
+            <p>Get personalized treatment recommendations based on disease, environment, and your preferences</p>
+        </div>
+
+        <!-- Treatment Request Form -->
+        <div class="request-form-section">
+            <h2><i class="fas fa-clipboard-list"></i> Treatment Request</h2>
+            <form id="treatmentForm" onsubmit="getTreatmentRecommendations(event)">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="disease_name">Disease Detected</label>
+                        <select id="disease_name" name="disease_name" required>
+                            <option value="">Select disease</option>
+                            <option value="Tomato___Late_blight">Tomato Late Blight</option>
+                            <option value="Tomato___Early_blight">Tomato Early Blight</option>
+                            <option value="Apple___Apple_scab">Apple Scab</option>
+                            <option value="Apple___Black_rot">Apple Black Rot</option>
+                            <option value="Potato___Late_blight">Potato Late Blight</option>
+                            <option value="Potato___Early_blight">Potato Early Blight</option>
+                            <option value="Corn___Common_rust">Corn Common Rust</option>
+                            <option value="Grape___Black_rot">Grape Black Rot</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="severity">Disease Severity</label>
+                        <select id="severity" name="severity" required>
+                            <option value="">Select severity</option>
+                            <option value="Mild">Mild</option>
+                            <option value="Moderate">Moderate</option>
+                            <option value="Severe">Severe</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="crop_stage">Crop Growth Stage</label>
+                        <select id="crop_stage" name="crop_stage">
+                            <option value="vegetative">Vegetative</option>
+                            <option value="flowering">Flowering</option>
+                            <option value="fruiting">Fruiting</option>
+                            <option value="mature">Mature</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="preference">Treatment Preference</label>
+                        <select id="preference" name="preference">
+                            <option value="balanced">Balanced</option>
+                            <option value="organic">Organic Only</option>
+                            <option value="cost_effective">Cost Effective</option>
+                            <option value="high_efficacy">High Efficacy</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="environmental-section">
+                    <h3><i class="fas fa-leaf"></i> Environmental Conditions (Optional)</h3>
+                    <div class="env-grid">
+                        <div class="form-group">
+                            <label for="soil_ph">Soil pH</label>
+                            <input type="number" id="soil_ph" name="soil_ph" step="0.1" min="3" max="10" placeholder="e.g., 6.5">
+                        </div>
+                        <div class="weather-input-group">
+                            <div class="form-group">
+                                <label for="temperature">Temperature (°C)</label>
+                                <input type="number" id="temperature" name="temperature" step="0.1" placeholder="e.g., 25">
+                            </div>
+                            <div class="form-group">
+                                <label for="humidity">Humidity (%)</label>
+                                <input type="number" id="humidity" name="humidity" step="0.1" min="0" max="100" placeholder="e.g., 75">
+                            </div>
+                            <button type="button" id="weather-autofill-btn" class="weather-autofill-btn" onclick="autoFillWeather('temperature', 'humidity', 'weather-autofill-btn')">
+                                <i class="fas fa-cloud-sun"></i> Auto-fill Weather
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="budget-section">
+                    <h3><i class="fas fa-dollar-sign"></i> Budget Constraints (Optional)</h3>
+                    <div class="form-group">
+                        <label for="budget_limit">Maximum Budget per Hectare ($)</label>
+                        <input type="number" id="budget_limit" name="budget_limit" min="0" placeholder="e.g., 100">
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="organic_only" name="organic_only">
+                            Organic treatments only
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">
+                        <i class="fas fa-search"></i> Get Treatment Recommendations
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Analyzing and generating personalized recommendations...</p>
+        </div>
+
+        <!-- Recommendations Results -->
+        <div id="recommendations-section" class="recommendations-section" style="display: none;">
+            <h2><i class="fas fa-prescription-bottle"></i> Treatment Recommendations</h2>
+            
+            <!-- Primary Recommendations -->
+            <div id="primary-recommendations" class="recommendations-grid">
+                <!-- Recommendations will be populated here -->
+            </div>
+
+            <!-- IPM Advice -->
+            <div id="ipm-advice" class="ipm-section">
+                <h3><i class="fas fa-lightbulb"></i> Integrated Pest Management Advice</h3>
+                <div id="ipm-content">
+                    <!-- IPM advice will be populated here -->
+                </div>
+            </div>
+
+            <!-- Application Schedule -->
+            <div id="application-schedule" class="schedule-section">
+                <h3><i class="fas fa-calendar-alt"></i> Application Schedule</h3>
+                <div id="schedule-content">
+                    <!-- Schedule will be populated here -->
+                </div>
+            </div>
+
+            <!-- Resistance Warnings -->
+            <div id="resistance-warnings" class="warnings-section" style="display: none;">
+                <h3><i class="fas fa-exclamation-triangle"></i> Resistance Warnings</h3>
+                <div id="warnings-content">
+                    <!-- Warnings will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function getTreatmentRecommendations(event) {
+            event.preventDefault();
+            
+            // Show loading
+            const loadingEl = document.getElementById('loading');
+            const recommendationsEl = document.getElementById('recommendations-section');
+            
+            if (loadingEl) loadingEl.style.display = 'block';
+            if (recommendationsEl) recommendationsEl.style.display = 'none';
+            
+            // Collect form data
+            const formData = new FormData(event.target);
+            const requestData = {
+                disease_name: formData.get('disease_name'),
+                severity: formData.get('severity'),
+                crop_stage: formData.get('crop_stage'),
+                preference: formData.get('preference'),
+                environmental_data: {
+                    soil_ph: formData.get('soil_ph') ? parseFloat(formData.get('soil_ph')) : null,
+                    temperature: formData.get('temperature') ? parseFloat(formData.get('temperature')) : null,
+                    humidity: formData.get('humidity') ? parseFloat(formData.get('humidity')) : null
+                },
+                budget_limit: formData.get('budget_limit') ? parseFloat(formData.get('budget_limit')) : null,
+                organic_only: formData.get('organic_only') === 'on'
+            };
+            
+            try {
+                const response = await fetch('/api/treatment-recommendations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayRecommendations(result.recommendations);
+                } else {
+                    alert('Error getting recommendations: ' + (result.error || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Request error:', error);
+                alert('Error: ' + error.message);
+            } finally {
+                if (loadingEl) loadingEl.style.display = 'none';
+            }
+        }
+        
+        function displayRecommendations(recommendations) {
+            try {
+                console.log('Displaying recommendations:', recommendations);
+                
+                // Display primary recommendations
+                const primaryContainer = document.getElementById('primary-recommendations');
+                if (primaryContainer) {
+                    primaryContainer.innerHTML = '';
+                    
+                    if (recommendations.primary_recommendations && recommendations.primary_recommendations.length > 0) {
+                        recommendations.primary_recommendations.forEach((treatment, index) => {
+                            try {
+                                const treatmentCard = createTreatmentCard(treatment, index + 1);
+                                primaryContainer.appendChild(treatmentCard);
+                            } catch (error) {
+                                console.error('Error creating treatment card:', error);
+                            }
+                        });
+                    } else {
+                        primaryContainer.innerHTML = '<div class="empty-message"><p>No treatment recommendations available.</p></div>';
+                    }
+                }
+                
+                // Display IPM advice
+                displayIPMAdvice(recommendations.imp_advice || {});
+                
+                // Display application schedule
+                if (recommendations.application_schedule) {
+                    displayApplicationSchedule(recommendations.application_schedule);
+                }
+                
+                // Display resistance warnings
+                if (recommendations.resistance_warnings && recommendations.resistance_warnings.length > 0) {
+                    displayResistanceWarnings(recommendations.resistance_warnings);
+                }
+                
+                // Show the recommendations section
+                const recommendationsSection = document.getElementById('recommendations-section');
+                if (recommendationsSection) {
+                    recommendationsSection.style.display = 'block';
+                }
+                
+            } catch (error) {
+                console.error('Error displaying recommendations:', error);
+                alert('Error displaying recommendations. Please try again.');
+            }
+        }
+        
+        function createTreatmentCard(treatment, rank) {
+            const card = document.createElement('div');
+            card.className = 'treatment-card';
+            
+            const typeColor = {
+                'organic': '#4caf50',
+                'chemical': '#ff9800',
+                'biological': '#2196f3'
+            };
+            
+            const treatmentType = treatment.treatment_type || 'unknown';
+            const color = typeColor[treatmentType] || '#666';
+            
+            card.innerHTML = `
+                <div class="treatment-header">
+                    <div class="treatment-rank">#${rank}</div>
+                    <div class="treatment-type" style="background-color: ${color}">
+                        ${treatmentType.toUpperCase()}
+                    </div>
+                    <div class="recommendation-score">
+                        Score: ${treatment.recommendation_score || 'N/A'}
+                    </div>
+                </div>
+                
+                <h3 class="treatment-name">${treatment.name || 'Unknown Treatment'}</h3>
+                <p class="active-ingredient">Active Ingredient: ${treatment.active_ingredient || 'Not specified'}</p>
+                
+                <div class="treatment-details">
+                    <div class="detail-row">
+                        <span class="label">Application Rate:</span>
+                        <span class="value">${treatment.application_rate || 'Not specified'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Frequency:</span>
+                        <span class="value">${treatment.frequency || 'Not specified'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Timing:</span>
+                        <span class="value">${treatment.timing || 'Not specified'}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Effectiveness:</span>
+                        <span class="value">${treatment.effectiveness || 0}%</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Cost per Hectare:</span>
+                        <span class="value">$${treatment.cost_per_hectare || 0}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Safety Period:</span>
+                        <span class="value">${treatment.safety_period || 0} days</span>
+                    </div>
+                </div>
+                
+                ${treatment.caution ? `<div class="treatment-caution">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Caution:</strong> ${treatment.caution}
+                </div>` : ''}
+                
+                ${treatment.notes ? `<div class="treatment-notes">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Notes:</strong> ${treatment.notes}
+                </div>` : ''}
+            `;
+            
+            return card;
+        }
+        
+        function displayIPMAdvice(ipmAdvice) {
+            const container = document.getElementById('imp-content');
+            if (!container) {
+                console.error('IPM content container not found');
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            if (!ipmAdvice || typeof ipmAdvice !== 'object') {
+                container.innerHTML = '<p>No IPM advice available.</p>';
+                return;
+            }
+            
+            try {
+                let hasContent = false;
+                Object.keys(ipmAdvice).forEach(category => {
+                    if (ipmAdvice[category] && Array.isArray(ipmAdvice[category]) && ipmAdvice[category].length > 0) {
+                        const section = document.createElement('div');
+                        section.className = 'ipm-category';
+                        
+                        section.innerHTML = `
+                            <h4>${category.replace('_', ' ').toUpperCase()}</h4>
+                            <ul>
+                                ${ipmAdvice[category].map(advice => `<li>${advice}</li>`).join('')}
+                            </ul>
+                        `;
+                        
+                        container.appendChild(section);
+                        hasContent = true;
+                    }
+                });
+                
+                if (!hasContent) {
+                    container.innerHTML = '<p>No specific IPM advice available for this treatment.</p>';
+                }
+            } catch (error) {
+                console.error('Error processing IPM advice:', error);
+                container.innerHTML = '<p>Error loading IPM advice.</p>';
+            }
+        }
+        
+        function displayApplicationSchedule(schedule) {
+            const container = document.getElementById('schedule-content');
+            if (!container) {
+                console.error('Schedule content container not found');
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            if (!schedule || !Array.isArray(schedule) || schedule.length === 0) {
+                container.innerHTML = '<p>No application schedule available.</p>';
+                return;
+            }
+            
+            try {
+                const table = document.createElement('table');
+                table.className = 'schedule-table';
+                
+                table.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>Application #</th>
+                            <th>Date</th>
+                            <th>Treatment</th>
+                            <th>Rate</th>
+                            <th>Timing</th>
+                            <th>Weather Check</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${schedule.map(app => `
+                            <tr>
+                                <td>${app.application_number || 'N/A'}</td>
+                                <td>${app.date || 'N/A'}</td>
+                                <td>${app.treatment || 'N/A'}</td>
+                                <td>${app.rate || 'N/A'}</td>
+                                <td>${app.timing || 'N/A'}</td>
+                                <td>${app.weather_check || 'N/A'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+                
+                container.appendChild(table);
+            } catch (error) {
+                console.error('Error creating schedule table:', error);
+                container.innerHTML = '<p>Error loading application schedule.</p>';
+            }
+        }
+        
+        function displayResistanceWarnings(warnings) {
+            const container = document.getElementById('warnings-content');
+            if (!container) {
+                console.error('Warnings content container not found');
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            if (!warnings || !Array.isArray(warnings) || warnings.length === 0) {
+                return; // Don't show anything if no warnings
+            }
+            
+            try {
+                warnings.forEach(warning => {
+                    const warningDiv = document.createElement('div');
+                    warningDiv.className = 'warning-item';
+                    
+                    warningDiv.innerHTML = `
+                        <div class="warning-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>${(warning.type || 'Unknown').replace('_', ' ').toUpperCase()} - ${(warning.level || 'Unknown').toUpperCase()} RESISTANCE</strong>
+                        </div>
+                        <p>${warning.message || 'No details available'}</p>
+                        ${warning.alternatives && warning.alternatives.length > 0 ? `
+                        <div class="alternatives">
+                            <strong>Recommended alternatives:</strong>
+                            <ul>
+                                ${warning.alternatives.map(alt => `<li>${alt.replace('_', ' ')}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                    `;
+                    
+                    container.appendChild(warningDiv);
+                });
+                
+                const warningsSection = document.getElementById('resistance-warnings');
+                if (warningsSection) {
+                    warningsSection.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error displaying resistance warnings:', error);
+                container.innerHTML = '<p>Error loading resistance warnings.</p>';
+            }
+        }
+    </script>
+
+    <style>
+        .advisor-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 2rem 2rem;
+        }
+
+        .advisor-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .advisor-header h1 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        .request-form-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .request-form-section h2 {
+            color: #333;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .env-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .environmental-section,
+        .budget-section {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .environmental-section h3,
+        .budget-section h3 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+        }
+
+        .form-group input[type="checkbox"] {
+            width: auto;
+            margin-right: 0.5rem;
+        }
+
+        .form-actions {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .loading-indicator {
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2e7d32;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .recommendations-section {
+            margin-top: 2rem;
+        }
+
+        .recommendations-section h2 {
+            color: #333;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .treatment-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #2e7d32;
+        }
+
+        .treatment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .treatment-rank {
+            background: #2e7d32;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .treatment-type {
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .recommendation-score {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .treatment-name {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .active-ingredient {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 1rem;
+        }
+
+        .treatment-details {
+            margin-bottom: 1rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-row .label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .detail-row .value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .treatment-caution,
+        .treatment-notes {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .treatment-caution {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            color: #e65100;
+        }
+
+        .treatment-notes {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            color: #0d47a1;
+        }
+
+        .ipm-section,
+        .schedule-section,
+        .warnings-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .ipm-section h3,
+        .schedule-section h3,
+        .warnings-section h3 {
+            color: #333;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .ipm-category {
+            margin-bottom: 1.5rem;
+        }
+
+        .imp-category h4 {
+            color: #2e7d32;
+            margin-bottom: 0.5rem;
+        }
+
+        .ipm-category ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .ipm-category li {
+            margin-bottom: 0.3rem;
+            line-height: 1.4;
+        }
+
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .schedule-table th,
+        .schedule-table td {
+            padding: 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .schedule-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .warning-item {
+            background: #ffebee;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #f44336;
+            margin-bottom: 1rem;
+        }
+
+        .warning-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #d32f2f;
+            margin-bottom: 0.5rem;
+        }
+
+        .alternatives {
+            margin-top: 1rem;
+        }
+
+        .alternatives ul {
+            margin: 0.5rem 0 0 1.5rem;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px dashed #ddd;
+        }
+
+        .empty-message p {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+
+        .imp-category {
+            margin-bottom: 1.5rem;
+        }
+
+        .imp-category h4 {
+            color: #2e7d32;
+            margin-bottom: 0.5rem;
+        }
+
+        .imp-category ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .imp-category li {
+            margin-bottom: 0.3rem;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 768px) {
+            .advisor-container {
+                padding: 80px 1rem 1rem;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .env-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .recommendations-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .treatment-header {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                gap: 0.2rem;
+            }
+
+            .schedule-table {
+                font-size: 0.9rem;
+            }
+
+            .schedule-table th,
+            .schedule-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+    
+    <script src="../static/js/weather-autofill.js"></script>
+</body>
+</html>

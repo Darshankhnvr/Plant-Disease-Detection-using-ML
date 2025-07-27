@@ -1,19 +1,66 @@
-# Ignore node_modules
-node_modules/
-
-# Ignore environment variables
-.env
-
-# Ignore log files
-*.log
-
-# Ignore build output
-dist/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
-# Ignore model files
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite3
+
+# Model files (large ML models)
 models/plant_disease_recog_model_pwp.keras
+models/*.h5
+models/*.pkl
 
-# Ignore OS files
+# OS files
 .DS_Store
 Thumbs.db
+*.tmp
+
+# Node modules (if any)
+node_modules/
+
+# Reports (generated files)
+reports/*.pdf
+
+# Temporary files
+*.tmp
+*.temp
+fix_*.py
+temp_*.py

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crop Calendar - CropSense</title>
+    <link rel="icon" href="../static/images/logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="modern-navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="../static/images/logo.svg" alt="CropSense" class="nav-logo">
+                <span class="brand-text">CropSense</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/disease-tracker" class="nav-link">Disease Tracker</a>
+                <a href="/#about" class="nav-link">About</a>
+                <a href="/#features" class="nav-link">Features</a>
+                <a href="/#supported-diseases" class="nav-link">Supported Plant Diseases</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="calendar-container">
+        <div class="calendar-header">
+            <h1><i class="fas fa-calendar-alt"></i> Smart Crop Calendar</h1>
+            <p>AI-powered crop management with automated alerts and recommendations</p>
+            <button class="btn-primary" onclick="showAddCropModal()">
+                <i class="fas fa-plus"></i> Add New Crop
+            </button>
+        </div>
+
+        <!-- Active Alerts -->
+        {% if alerts %}
+        <div class="alerts-section">
+            <h2><i class="fas fa-bell"></i> Active Alerts</h2>
+            <div class="alerts-grid">
+                {% for alert in alerts %}
+                <div class="alert-card priority-{{alert[6]}}">
+                    <div class="alert-header">
+                        <div class="alert-type">
+                            {% if alert[2] == 'disease_prevention' %}
+                            <i class="fas fa-shield-alt"></i> Disease Prevention
+                            {% elif alert[2] == 'stage_transition' %}
+                            <i class="fas fa-seedling"></i> Growth Stage
+                            {% else %}
+                            <i class="fas fa-info-circle"></i> General
+                            {% endif %}
+                        </div>
+                        <div class="alert-date">{{alert[3]}}</div>
+                    </div>
+                    <div class="alert-message">{{alert[4]}}</div>
+                    <div class="alert-crop">
+                        <i class="fas fa-leaf"></i> {{alert[7]}} - {{alert[8] or 'Unknown Location'}}
+                    </div>
+                    <button class="btn-sm btn-outline" onclick="markAlertRead({{alert[0]}})">
+                        <i class="fas fa-check"></i> Mark as Read
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Crop Schedule -->
+        <div class="schedule-section">
+            <h2><i class="fas fa-calendar-check"></i> Crop Schedule</h2>
+            {% if schedule %}
+            <div class="schedule-grid">
+                {% for crop in schedule %}
+                <div class="crop-card">
+                    <div class="crop-header">
+                        <div class="crop-icon">
+                            {% if 'Tomato' in crop['crop_type'] %}
+                            <i class="fas fa-seedling" style="color: #e74c3c;"></i>
+                            {% elif 'Potato' in crop['crop_type'] %}
+                            <i class="fas fa-seedling" style="color: #8b4513;"></i>
+                            {% elif 'Apple' in crop['crop_type'] %}
+                            <i class="fas fa-apple-alt" style="color: #e74c3c;"></i>
+                            {% else %}
+                            <i class="fas fa-leaf" style="color: #27ae60;"></i>
+                            {% endif %}
+                        </div>
+                        <div class="crop-info">
+                            <h3>{{crop['crop_type']}}</h3>
+                            <p>{{crop['location'] or 'Unknown Location'}}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="crop-details">
+                        <div class="detail-row">
+                            <span class="label">Variety:</span>
+                            <span class="value">{{crop['variety'] or 'Not specified'}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Planted:</span>
+                            <span class="value">{{crop['planting_date']}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Expected Harvest:</span>
+                            <span class="value">{{crop['harvest_date']}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Current Stage:</span>
+                            <span class="value stage-{{crop['current_stage']}}">{{crop['current_stage'].title()}}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Days Since Planting:</span>
+                            <span class="value">{{crop['days_since_planting']}} days</span>
+                        </div>
+                    </div>
+                    
+                    <div class="crop-progress">
+                        <div class="progress-bar">
+                            {% set progress = (crop['days_since_planting'] / 120 * 100) | round %}
+                            <div class="progress-fill" style="width: {{progress}}%"></div>
+                        </div>
+                        <span class="progress-text">{{progress}}% Complete</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-calendar-plus"></i>
+                <h3>No crops in your calendar yet</h3>
+                <p>Add your first crop to start receiving AI-powered recommendations</p>
+                <button class="btn-primary" onclick="showAddCropModal()">
+                    <i class="fas fa-plus"></i> Add Your First Crop
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add Crop Modal -->
+    <div id="addCropModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Crop</h3>
+                <span class="close" onclick="hideAddCropModal()">&times;</span>
+            </div>
+            <form id="addCropForm" onsubmit="addCrop(event)">
+                <div class="form-group">
+                    <label for="crop_type">Crop Type</label>
+                    <select id="crop_type" name="crop_type" required>
+                        <option value="">Select crop type</option>
+                        <option value="Tomato">Tomato</option>
+                        <option value="Potato">Potato</option>
+                        <option value="Apple">Apple</option>
+                        <option value="Corn">Corn</option>
+                        <option value="Grape">Grape</option>
+                        <option value="Pepper">Pepper</option>
+                        <option value="Strawberry">Strawberry</option>
+                        <option value="Cherry">Cherry</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="planting_date">Planting Date</label>
+                    <input type="date" id="planting_date" name="planting_date" required>
+                </div>
+                <div class="form-group">
+                    <label for="location">Field Location (Optional)</label>
+                    <input type="text" id="location" name="location" placeholder="e.g., North Field, Greenhouse A">
+                </div>
+                <div class="form-group">
+                    <label for="variety">Variety (Optional)</label>
+                    <input type="text" id="variety" name="variety" placeholder="e.g., Roma, Beefsteak">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="hideAddCropModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Crop</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function showAddCropModal() {
+            document.getElementById('addCropModal').style.display = 'block';
+        }
+
+        function hideAddCropModal() {
+            document.getElementById('addCropModal').style.display = 'none';
+        }
+
+        async function addCrop(event) {
+            event.preventDefault();
+            
+            const formData = new FormData(event.target);
+            
+            try {
+                const response = await fetch('/add-crop', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Crop added successfully! Alerts and recommendations have been generated.');
+                    location.reload();
+                } else {
+                    alert('Error adding crop: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function markAlertRead(alertId) {
+            try {
+                const response = await fetch(`/api/mark-alert-read/${alertId}`, {
+                    method: 'POST'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    location.reload();
+                } else {
+                    alert('Error marking alert as read: ' + result.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('addCropModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+
+    <style>
+        .calendar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 100px 2rem 2rem;
+        }
+
+        .calendar-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .calendar-header h1 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        .alerts-section, .schedule-section {
+            margin-bottom: 3rem;
+        }
+
+        .alerts-section h2, .schedule-section h2 {
+            color: #333;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .alerts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .alert-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid #2e7d32;
+        }
+
+        .alert-card.priority-high {
+            border-left-color: #f44336;
+        }
+
+        .alert-card.priority-medium {
+            border-left-color: #ff9800;
+        }
+
+        .alert-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .alert-type {
+            font-weight: 600;
+            color: #2e7d32;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .alert-message {
+            color: #333;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .alert-crop {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .crop-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .crop-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .crop-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .crop-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .crop-info h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .crop-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .crop-details {
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-row .label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .detail-row .value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .stage-seedling { color: #4caf50; }
+        .stage-vegetative { color: #2196f3; }
+        .stage-flowering { color: #ff9800; }
+        .stage-fruiting { color: #e91e63; }
+        .stage-mature { color: #9c27b0; }
+
+        .crop-progress {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 1rem;
+        }
+
+        .empty-state p {
+            margin-bottom: 2rem;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 2rem 2rem 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #333;
+        }
+
+        .modal form {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-container {
+                padding: 80px 1rem 1rem;
+            }
+
+            .alerts-grid,
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .crop-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .detail-row {
+                flex-direction: column;
+                gap: 0.2rem;
+            }
+
+            .crop-progress {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</body>
+</html>

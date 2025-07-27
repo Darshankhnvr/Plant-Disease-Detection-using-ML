@@ -15,6 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
       rel="stylesheet"
     />
+    <link rel="stylesheet" href="../static/css/weather-autofill.css" />
   </head>
   <body>
     <!-- Navigation -->
@@ -29,11 +30,11 @@
           <span class="brand-text">CropSense</span>
         </div>
         <div class="nav-links">
-          <a href="#home" class="nav-link active">Home</a>
+          <a href="/" class="nav-link active">Home</a>
           <a href="/disease-tracker" class="nav-link">Disease Tracker</a>
           <a href="#about" class="nav-link">About</a>
           <a href="#features" class="nav-link">Features</a>
-          <a href="#diseases" class="nav-link">Supported Diseases</a>
+          <a href="#supported-diseases" class="nav-link">Supported Plant Diseases</a>
         </div>
       </div>
     </nav>
@@ -44,38 +45,110 @@
         <div class="hero-overlay"></div>
       </div>
       <div class="hero-content">
-        <div class="hero-text">
-          <h1 class="hero-title">
-            <span class="title-highlight">AI-Powered</span>
-            Plant Disease Detection
-          </h1>
-          <p class="hero-subtitle">
-            Protect your crops with advanced machine learning technology. Upload
-            a photo and get instant disease diagnosis with treatment
-            recommendations.
-          </p>
-          <div class="hero-stats">
-            <div class="stat-item">
-              <i class="fas fa-leaf"></i>
-              <span class="stat-number">39+</span>
-              <span class="stat-label">Disease Types</span>
+        <div class="hero-container">
+          <!-- Top Row: AI-Powered Title and Quick Actions Side by Side -->
+          <div class="top-row">
+            <!-- Left: Hero Title Section -->
+            <div class="hero-title-section">
+              <h1 class="hero-title">
+                <span class="title-highlight">AI-Powered</span>
+                Plant Disease Detection
+              </h1>
+              <p class="hero-subtitle">
+                Protect your crops with advanced machine learning technology. Upload
+                a photo and get instant disease diagnosis with treatment
+                recommendations.
+              </p>
+              <div class="hero-stats">
+                <div class="stat-item">
+                  <i class="fas fa-leaf"></i>
+                  <div>
+                    <span class="stat-number">39+</span>
+                    <span class="stat-label">Disease Types</span>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <i class="fas fa-bullseye"></i>
+                  <div>
+                    <span class="stat-number">99%</span>
+                    <span class="stat-label">Accuracy</span>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <i class="fas fa-clock"></i>
+                  <div>
+                    <span class="stat-number">< 5s</span>
+                    <span class="stat-label">Analysis Time</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div class="stat-item">
-              <i class="fas fa-accuracy"></i>
-              <span class="stat-number">99%</span>
-              <span class="stat-label">Accuracy</span>
-            </div>
-            <div class="stat-item">
-              <i class="fas fa-clock"></i>
-              <span class="stat-number">< 5s</span>
-              <span class="stat-label">Analysis Time</span>
+
+            <!-- Right: Quick Actions -->
+            <div class="quick-actions-card">
+              <h2 class="quick-actions-title">
+                <i class="fas fa-bolt"></i>
+                Quick Actions
+              </h2>
+              <div class="actions-grid">
+                <a href="#upload-section" class="action-card" onclick="scrollToUpload()">
+                  <div class="action-icon">
+                    <i class="fas fa-camera"></i>
+                  </div>
+                  <div class="action-content">
+                    <h3>Analyze Plant</h3>
+                    <p>Upload image for instant detection</p>
+                  </div>
+                </a>
+
+                <a href="/crop-calendar" class="action-card">
+                  <div class="action-icon">
+                    <i class="fas fa-calendar-plus"></i>
+                  </div>
+                  <div class="action-content">
+                    <h3>Add Crop</h3>
+                    <p>Schedule new crop planting</p>
+                  </div>
+                </a>
+
+                <a href="/treatment-advisor" class="action-card">
+                  <div class="action-icon">
+                    <i class="fas fa-user-md"></i>
+                  </div>
+                  <div class="action-content">
+                    <h3>Get Treatment</h3>
+                    <p>AI-powered recommendations</p>
+                  </div>
+                </a>
+
+                <a href="/weather-dashboard" class="action-card">
+                  <div class="action-icon">
+                    <i class="fas fa-cloud-sun"></i>
+                  </div>
+                  <div class="action-content">
+                    <h3>Weather Forecast</h3>
+                    <p>Disease risk prediction</p>
+                  </div>
+                </a>
+
+                <a href="/analytics-dashboard" class="action-card">
+                  <div class="action-icon">
+                    <i class="fas fa-chart-bar"></i>
+                  </div>
+                  <div class="action-content">
+                    <h3>Analytics</h3>
+                    <p>Data insights & reports</p>
+                  </div>
+                </a>
+              </div>
             </div>
           </div>
+
         </div>
 
-        <!-- Upload Section -->
-        <div class="upload-section">
-          <div class="upload-card">
+        <!-- Analyze Your Plant Section -->
+        <div class="analyze-plant-section">
+          <div class="upload-section" id="upload-section">
             <div class="upload-header">
               <i class="fas fa-camera-retro"></i>
               <h2>Analyze Your Plant</h2>
@@ -136,8 +209,8 @@
                   </label>
                   <input type="number" step="0.1" name="humidity" id="humidity" class="form-control" placeholder="e.g., 65">
                 </div>
-                <button type="button" class="btn btn-outline-success" id="fetch-weather-btn" style="margin-bottom: 1rem;">
-                  <i class="fas fa-map-marker-alt"></i> Use my location to auto-fill weather
+                <button type="button" class="weather-autofill-btn" id="fetch-weather-btn" style="margin-bottom: 1rem;" onclick="autoFillWeather('temperature', 'humidity', 'fetch-weather-btn')">
+                  <i class="fas fa-cloud-sun"></i> Auto-fill Weather Data
                 </button>
               </div>
 
@@ -313,6 +386,97 @@
                     </div>
                     {% endif %}
 
+                    <!-- Enhanced Prediction Analysis -->
+                    {% if prediction.get('environmental_enhanced') %}
+                    <div class="env-analysis-display">
+                      <h6><i class="fas fa-brain"></i> AI-Enhanced Prediction</h6>
+                      
+                      <div class="prediction-method">
+                        <div class="method-badge method-{{prediction['prediction_method']}}">
+                          {% if prediction['prediction_method'] == 'hybrid_combined' %}
+                          <i class="fas fa-layer-group"></i> Hybrid AI (Image + Environment)
+                          {% else %}
+                          <i class="fas fa-image"></i> Image-Only Analysis
+                          {% endif %}
+                        </div>
+                      </div>
+                      
+                      {% if prediction.get('environmental_analysis') %}
+                      <div class="confidence-enhancement">
+                        <div class="confidence-breakdown">
+                          <div class="confidence-item">
+                            <span class="conf-label">Image Analysis:</span>
+                            <span class="conf-value">{{prediction['environmental_analysis']['image_confidence']}}%</span>
+                          </div>
+                          <div class="confidence-item">
+                            <span class="conf-label">Environmental Analysis:</span>
+                            <span class="conf-value">{{prediction['environmental_analysis']['env_confidence']}}%</span>
+                          </div>
+                          <div class="confidence-item final">
+                            <span class="conf-label">Combined Confidence:</span>
+                            <span class="conf-value">{{prediction['environmental_analysis']['combined_confidence']}}%</span>
+                          </div>
+                        </div>
+                        
+                        <div class="agreement-indicator">
+                          {% if prediction['environmental_analysis']['agreement'] %}
+                          <i class="fas fa-check-circle text-success"></i>
+                          <span class="agreement-text">Image and environmental analysis agree</span>
+                          {% else %}
+                          <i class="fas fa-exclamation-triangle text-warning"></i>
+                          <span class="agreement-text">Image and environmental analysis differ - consider retesting</span>
+                          {% endif %}
+                        </div>
+                        
+                        <div class="enhancement-note">
+                          <i class="fas fa-info-circle"></i>
+                          {{prediction['environmental_analysis']['enhancement_note']}}
+                        </div>
+                      </div>
+                      {% endif %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Legacy Environmental Analysis (for additional insights) -->
+                    {% if prediction.get('legacy_environmental_analysis') %}
+                    <div class="env-risk-display">
+                      <h6><i class="fas fa-thermometer-half"></i> Environmental Risk Factors</h6>
+                      
+                      <div class="risk-assessment">
+                        <div class="risk-level risk-{{prediction['legacy_environmental_analysis']['environmental_risk']}}">
+                          <i class="fas fa-exclamation-triangle"></i>
+                          <span>{{prediction['legacy_environmental_analysis']['environmental_risk'].title()}} Risk Conditions</span>
+                        </div>
+                        <div class="risk-score">
+                          Risk Score: {{prediction['legacy_environmental_analysis']['risk_score']}}/1.0
+                        </div>
+                      </div>
+                      
+                      {% if prediction['legacy_environmental_analysis']['risk_factors'] %}
+                      <div class="risk-factors">
+                        <h7>Environmental Factors:</h7>
+                        <ul>
+                          {% for factor in prediction['legacy_environmental_analysis']['risk_factors'] %}
+                          <li>{{factor}}</li>
+                          {% endfor %}
+                        </ul>
+                      </div>
+                      {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Environmental Recommendations -->
+                    {% if prediction.get('environmental_recommendations') %}
+                    <div class="env-recommendations-display">
+                      <h6><i class="fas fa-lightbulb"></i> Environmental Recommendations</h6>
+                      <ul class="recommendations-list">
+                        {% for rec in prediction['environmental_recommendations']['recommendations'] %}
+                        <li>{{rec}}</li>
+                        {% endfor %}
+                      </ul>
+                    </div>
+                    {% endif %}
+
                   </div>
 
                   <!-- Yield Prediction Section -->
@@ -393,6 +557,51 @@
               </div>
             </div>
             {% endif %}
+          </div>
+        </div>
+
+        <!-- Recent Disease Cases Section -->
+        <div class="recent-cases-section">
+          <div class="recent-cases">
+            <h2><i class="fas fa-history"></i> Recent Disease Cases</h2>
+            {% if recent_cases %}
+            <div class="cases-list">
+              {% for case in recent_cases %}
+              <div class="case-item">
+                <div class="case-icon">
+                  <i class="fas fa-bug"></i>
+                </div>
+                <div class="case-content">
+                  <h4>{{case[1]}}</h4>
+                  <p class="case-disease">{{case[2].replace('___', ' - ').replace('_', ' ')}}</p>
+                  <div class="case-meta">
+                    <span class="severity-badge severity-{{case[3].lower()}}">{{case[3]}}</span>
+                    <span class="case-date">{{case[4][:10]}}</span>
+                  </div>
+                </div>
+                <div class="case-actions">
+                  <a href="/case/{{case[0]}}" class="btn-sm btn-outline">View Details</a>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="cases-footer">
+              <a href="/disease-tracker" class="btn-outline">View All Cases</a>
+            </div>
+            {% else %}
+            <div class="empty-state">
+              <i class="fas fa-leaf"></i>
+              <h3>No recent disease cases</h3>
+              <p>Your crops are looking healthy! Start by analyzing a plant image.</p>
+              <button onclick="scrollToUpload()" class="btn-primary">Analyze Plant</button>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+
+
+
           </div>
         </div>
       </div>
@@ -552,7 +761,7 @@
     </section>
 
     <!-- Supported Diseases Section -->
-    <section class="diseases-section" id="diseases">
+    <section class="diseases-section" id="supported-diseases">
       <div class="container">
         <div class="section-header">
           <h2>Supported Plant Diseases</h2>
@@ -1035,6 +1244,7 @@ Remember: Deep, infrequent watering promotes strong root development!`;
       }
     </script>
     <script src="../static/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/js/weather-autofill.js"></script>
     <script>
       // File upload preview
       document
@@ -1341,6 +1551,51 @@ Remember: Deep, infrequent watering promotes strong root development!`;
           btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Use my location to auto-fill weather';
         });
       });
+
+      // Dashboard functions
+      function scrollToUpload() {
+        const uploadSection = document.querySelector('.upload-section');
+        if (uploadSection) {
+          uploadSection.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      }
+
+      function viewAlert(alertId) {
+        // Redirect to crop calendar with alert focus
+        window.location.href = `/crop-calendar#alert-${alertId}`;
+      }
+
+      // Auto-refresh dashboard data every 5 minutes (only if user is active)
+      setInterval(() => {
+        if (document.visibilityState === 'visible') {
+          // Only refresh the dashboard sections, not the whole page
+          fetch('/api/dashboard-data')
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                updateDashboardData(data);
+              }
+            })
+            .catch(error => console.log('Dashboard refresh failed:', error));
+        }
+      }, 300000); // 5 minutes
+
+      function updateDashboardData(data) {
+        // Update farm health score
+        const scoreElement = document.querySelector('.score-number');
+        if (scoreElement && data.farm_health) {
+          scoreElement.textContent = data.farm_health.overall_score;
+        }
+        
+        // Update recent cases count
+        const casesElement = document.querySelector('.summary-item:first-child span');
+        if (casesElement && data.farm_health) {
+          casesElement.textContent = `${data.farm_health.recent_cases} recent cases`;
+        }
+      }
     </script>
   </body>
 </html>

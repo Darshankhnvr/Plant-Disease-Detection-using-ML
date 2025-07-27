@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Dashboard - CropSense</title>
+    <link rel="icon" href="../static/images/logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/weather-autofill.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="modern-navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="../static/images/logo.svg" alt="CropSense" class="nav-logo">
+                <span class="brand-text">CropSense</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/disease-tracker" class="nav-link">Disease Tracker</a>
+                <a href="/#about" class="nav-link">About</a>
+                <a href="/#features" class="nav-link">Features</a>
+                <a href="/#supported-diseases" class="nav-link">Supported Plant Diseases</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1><i class="fas fa-cloud-sun"></i> Weather Dashboard</h1>
+            <p>Real-time weather monitoring and disease risk forecasting</p>
+        </div>
+
+        <!-- Location Input -->
+        <div class="location-section">
+            <div class="location-input">
+                <h3>Enter Your Location</h3>
+                <div class="input-group">
+                    <input type="number" id="latitude" placeholder="Latitude" step="any">
+                    <input type="number" id="longitude" placeholder="Longitude" step="any">
+                    <button onclick="getLocation()" class="btn-primary">
+                        <i class="fas fa-map-marker-alt"></i> Use GPS
+                    </button>
+                    <button onclick="autoFillCurrentLocation()" class="weather-autofill-btn">
+                        <i class="fas fa-cloud-sun"></i> Auto-fill & Get Weather
+                    </button>
+                    <button onclick="getWeatherData()" class="btn-secondary">
+                        <i class="fas fa-search"></i> Get Weather
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Current Weather -->
+        <div id="current-weather" class="weather-section" style="display: none;">
+            <h3><i class="fas fa-thermometer-half"></i> Current Weather</h3>
+            <div class="weather-cards">
+                <div class="weather-card">
+                    <div class="weather-icon">
+                        <i class="fas fa-temperature-high"></i>
+                    </div>
+                    <div class="weather-info">
+                        <h4>Temperature</h4>
+                        <span id="current-temp">--°C</span>
+                    </div>
+                </div>
+                <div class="weather-card">
+                    <div class="weather-icon">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="weather-info">
+                        <h4>Humidity</h4>
+                        <span id="current-humidity">--%</span>
+                    </div>
+                </div>
+                <div class="weather-card">
+                    <div class="weather-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div class="weather-info">
+                        <h4>Conditions</h4>
+                        <span id="current-conditions">--</span>
+                    </div>
+                </div>
+                <div class="weather-card">
+                    <div class="weather-icon">
+                        <i class="fas fa-wind"></i>
+                    </div>
+                    <div class="weather-info">
+                        <h4>Wind Speed</h4>
+                        <span id="current-wind">-- m/s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Disease Risk Forecast -->
+        <div id="risk-forecast" class="risk-section" style="display: none;">
+            <h3><i class="fas fa-exclamation-triangle"></i> Disease Risk Forecast</h3>
+            <div class="risk-chart-container">
+                <canvas id="riskChart"></canvas>
+            </div>
+            <div id="risk-recommendations" class="risk-recommendations">
+                <h4>Recommendations</h4>
+                <ul id="recommendations-list"></ul>
+            </div>
+        </div>
+
+        <!-- Loading Indicator -->
+        <div id="loading" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Fetching weather data...</p>
+        </div>
+    </div>
+
+    <script>
+        let riskChart;
+
+        function getLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    document.getElementById('latitude').value = position.coords.latitude.toFixed(6);
+                    document.getElementById('longitude').value = position.coords.longitude.toFixed(6);
+                }, function(error) {
+                    alert('Error getting location: ' + error.message);
+                });
+            } else {
+                alert('Geolocation is not supported by this browser.');
+            }
+        }
+
+        async function getWeatherData() {
+            const lat = document.getElementById('latitude').value;
+            const lon = document.getElementById('longitude').value;
+
+            if (!lat || !lon) {
+                alert('Please enter latitude and longitude');
+                return;
+            }
+
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('current-weather').style.display = 'none';
+            document.getElementById('risk-forecast').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/weather-analysis', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        latitude: parseFloat(lat),
+                        longitude: parseFloat(lon)
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayCurrentWeather(data.current_weather);
+                    displayRiskForecast(data.disease_risk_forecast);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error fetching weather data: ' + error.message);
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        function displayCurrentWeather(weather) {
+            if (!weather) return;
+
+            document.getElementById('current-temp').textContent = weather.temperature + '°C';
+            document.getElementById('current-humidity').textContent = weather.humidity + '%';
+            document.getElementById('current-conditions').textContent = weather.description;
+            document.getElementById('current-wind').textContent = weather.wind_speed + ' m/s';
+
+            document.getElementById('current-weather').style.display = 'block';
+        }
+
+        function displayRiskForecast(riskData) {
+            if (!riskData || riskData.length === 0) return;
+
+            // Prepare chart data
+            const dates = riskData.map(item => item.date);
+            const overallRisk = riskData.map(item => item.overall_risk);
+            const lateBlightRisk = riskData.map(item => item.late_blight_risk);
+            const powderyMildewRisk = riskData.map(item => item.powdery_mildew_risk);
+            const rustRisk = riskData.map(item => item.rust_risk);
+
+            // Create chart
+            const ctx = document.getElementById('riskChart').getContext('2d');
+            
+            if (riskChart) {
+                riskChart.destroy();
+            }
+
+            riskChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Overall Risk',
+                            data: overallRisk,
+                            borderColor: '#f44336',
+                            backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                            borderWidth: 3,
+                            fill: true
+                        },
+                        {
+                            label: 'Late Blight Risk',
+                            data: lateBlightRisk,
+                            borderColor: '#ff9800',
+                            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Powdery Mildew Risk',
+                            data: powderyMildewRisk,
+                            borderColor: '#2196f3',
+                            backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Rust Risk',
+                            data: rustRisk,
+                            borderColor: '#4caf50',
+                            backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            title: {
+                                display: true,
+                                text: 'Risk Level (%)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        title: {
+                            display: true,
+                            text: '7-Day Disease Risk Forecast'
+                        }
+                    }
+                }
+            });
+
+            // Generate recommendations
+            generateRecommendations(riskData);
+
+            document.getElementById('risk-forecast').style.display = 'block';
+        }
+
+        function generateRecommendations(riskData) {
+            const recommendationsList = document.getElementById('recommendations-list');
+            recommendationsList.innerHTML = '';
+
+            const highRiskDays = riskData.filter(day => day.overall_risk > 70);
+            const moderateRiskDays = riskData.filter(day => day.overall_risk > 40 && day.overall_risk <= 70);
+
+            if (highRiskDays.length > 0) {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="fas fa-exclamation-triangle text-danger"></i> High disease risk on ${highRiskDays.length} day(s). Consider preventive treatment.`;
+                recommendationsList.appendChild(li);
+            }
+
+            if (moderateRiskDays.length > 0) {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="fas fa-eye text-warning"></i> Moderate risk on ${moderateRiskDays.length} day(s). Increase monitoring frequency.`;
+                recommendationsList.appendChild(li);
+            }
+
+            if (highRiskDays.length === 0 && moderateRiskDays.length === 0) {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="fas fa-check-circle text-success"></i> Low disease risk forecast. Continue regular monitoring.`;
+                recommendationsList.appendChild(li);
+            }
+
+            // Specific disease recommendations
+            const maxLateBlightRisk = Math.max(...riskData.map(d => d.late_blight_risk));
+            if (maxLateBlightRisk > 60) {
+                const li = document.createElement('li');
+                li.innerHTML = `<i class="fas fa-leaf text-danger"></i> High late blight risk detected. Apply copper-based fungicide preventively.`;
+                recommendationsList.appendChild(li);
+            }
+        }
+
+        // Auto-fill current location and get weather
+        async function autoFillCurrentLocation() {
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject);
+                });
+                
+                document.getElementById('latitude').value = position.coords.latitude.toFixed(6);
+                document.getElementById('longitude').value = position.coords.longitude.toFixed(6);
+                
+                // Automatically get weather data
+                getWeatherData();
+            } catch (error) {
+                alert('Error getting location: ' + error.message);
+            }
+        }
+    </script>
+    
+    <script src="../static/js/weather-autofill.js"></script>
+
+    <style>
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 2rem 2rem;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .dashboard-header h1 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        .location-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .input-group input {
+            flex: 1;
+            min-width: 150px;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .weather-section, .risk-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 2rem;
+        }
+
+        .weather-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .weather-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 1.5rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .weather-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .weather-info h4 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .weather-info span {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #2e7d32;
+        }
+
+        .risk-chart-container {
+            height: 400px;
+            margin: 2rem 0;
+        }
+
+        .risk-recommendations {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .risk-recommendations h4 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        .risk-recommendations ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .risk-recommendations li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .loading-indicator {
+            text-align: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #2e7d32;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+
+            .input-group input,
+            .input-group button {
+                width: 100%;
+            }
+
+            .weather-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>

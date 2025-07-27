@@ -25,7 +25,10 @@ class DiseaseTracker:
                 initial_image_path TEXT NOT NULL,
                 created_date TEXT NOT NULL,
                 status TEXT DEFAULT 'active',
-                notes TEXT
+                notes TEXT,
+                environmental_data TEXT,
+                environmental_risk_score REAL,
+                confidence_adjustment REAL
             )
         ''')
         
@@ -83,11 +86,16 @@ class DiseaseTracker:
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
         
+        # Extract environmental data if available
+        env_data = prediction_data.get('environmental_data', {})
+        env_analysis = prediction_data.get('environmental_analysis', {})
+        
         cursor.execute('''
             INSERT INTO disease_cases 
             (id, plant_name, initial_disease, initial_confidence, initial_severity, 
-             initial_health_score, initial_image_path, created_date, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+             initial_health_score, initial_image_path, created_date, notes,
+             environmental_data, environmental_risk_score, confidence_adjustment)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             case_id,
             plant_name,
@@ -97,7 +105,10 @@ class DiseaseTracker:
             prediction_data['health_score'],
             image_path,
             datetime.now().isoformat(),
-            notes
+            notes,
+            json.dumps(env_data) if env_data else None,
+            env_analysis.get('risk_score'),
+            env_analysis.get('confidence_adjustment')
         ))
         
         conn.commit()

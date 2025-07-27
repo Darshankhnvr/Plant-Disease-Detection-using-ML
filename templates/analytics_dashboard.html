@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - CropSense</title>
+    <link rel="icon" href="../static/images/logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../static/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="modern-navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <img src="../static/images/logo.svg" alt="CropSense" class="nav-logo">
+                <span class="brand-text">CropSense</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link">Home</a>
+                <a href="/disease-tracker" class="nav-link">Disease Tracker</a>
+                <a href="/#about" class="nav-link">About</a>
+                <a href="/#features" class="nav-link">Features</a>
+                <a href="/#supported-diseases" class="nav-link">Supported Plant Diseases</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="analytics-container">
+        <div class="analytics-header">
+            <h1><i class="fas fa-chart-bar"></i> Analytics Dashboard</h1>
+            <p>Data-driven insights for better farm management decisions</p>
+        </div>
+
+        <!-- Farm Health Score -->
+        <div class="health-score-section">
+            <div class="health-score-card">
+                <div class="score-display">
+                    <div class="score-circle">
+                        <div class="score-number">{{farm_health['overall_score']}}</div>
+                        <div class="score-label">Farm Health</div>
+                    </div>
+                </div>
+                <div class="score-details">
+                    <h3>Farm Health Status: <span class="status-{{farm_health['status'].lower()}}">{{farm_health['status']}}</span></h3>
+                    <div class="health-factors">
+                        <h4>Key Factors:</h4>
+                        <ul>
+                            {% for factor in farm_health['factors'] %}
+                            <li>{{factor}}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="health-metrics">
+                        <div class="metric">
+                            <span class="metric-label">Recent Cases:</span>
+                            <span class="metric-value">{{farm_health['recent_cases']}}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Avg Plant Health:</span>
+                            <span class="metric-value">{{farm_health['avg_plant_health']}}/100</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-bug"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>Total Cases</h3>
+                    <div class="metric-number">{{trends['summary']['total_cases'] or 0}}</div>
+                    <div class="metric-period">Last 30 days</div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-percentage"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>Avg Confidence</h3>
+                    <div class="metric-number">{{(trends['summary']['avg_confidence'] or 0) | round(1)}}%</div>
+                    <div class="metric-period">Detection accuracy</div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-medkit"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>Treatments</h3>
+                    <div class="metric-number">{{effectiveness['summary']['total_treatments'] or 0}}</div>
+                    <div class="metric-period">Applied treatments</div>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-icon">
+                    <i class="fas fa-arrow-up"></i>
+                </div>
+                <div class="metric-content">
+                    <h3>Avg Improvement</h3>
+                    <div class="metric-number">{{(effectiveness['summary']['avg_improvement'] or 0) | round(1)}}</div>
+                    <div class="metric-period">Health score points</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <!-- Disease Trends Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-line"></i> Disease Trends</h3>
+                    <div class="chart-controls">
+                        <select id="trendsPeriod" onchange="updateTrendsChart()">
+                            <option value="30_days">Last 30 Days</option>
+                            <option value="90_days">Last 90 Days</option>
+                            <option value="1_year">Last Year</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="trendsChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Treatment Effectiveness Chart -->
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h3><i class="fas fa-chart-bar"></i> Treatment Effectiveness</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="effectivenessChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Analysis -->
+        <div class="analysis-section">
+            <!-- Most Affected Crops -->
+            <div class="analysis-card">
+                <h3><i class="fas fa-leaf"></i> Most Affected Crops</h3>
+                <div class="crops-list">
+                    {% if trends['summary']['most_affected_crops'] %}
+                        {% for crop, count in trends['summary']['most_affected_crops'].items() %}
+                        <div class="crop-item">
+                            <span class="crop-name">{{crop}}</span>
+                            <span class="crop-count">{{count}} cases</span>
+                            <div class="crop-bar">
+                                <div class="crop-fill" style="width: {{(count / trends['summary']['total_cases'] * 100) if trends['summary']['total_cases'] > 0 else 0}}%"></div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state-small">
+                            <i class="fas fa-leaf"></i>
+                            <p>No crop data available yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Severity Distribution -->
+            <div class="analysis-card">
+                <h3><i class="fas fa-exclamation-triangle"></i> Severity Distribution</h3>
+                <div class="severity-chart">
+                    {% if trends['summary']['severity_distribution'] %}
+                        <canvas id="severityChart"></canvas>
+                    {% else %}
+                        <div class="empty-state-small">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <p>No severity data available yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Environmental Correlations -->
+            {% if correlations['correlations'] %}
+            <div class="analysis-card">
+                <h3><i class="fas fa-thermometer-half"></i> Environmental Correlations</h3>
+                <div class="correlations-content">
+                    {% for insight in correlations['insights'] %}
+                    <div class="insight-item">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>{{insight}}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Seasonal Patterns -->
+        {% if seasonal['patterns'] %}
+        <div class="seasonal-section">
+            <div class="chart-card full-width">
+                <div class="chart-header">
+                    <h3><i class="fas fa-calendar-alt"></i> Seasonal Disease Patterns</h3>
+                </div>
+                <div class="chart-container">
+                    <canvas id="seasonalChart"></canvas>
+                </div>
+                <div class="seasonal-insights">
+                    <h4>Key Insights:</h4>
+                    <ul>
+                        {% for insight in seasonal['insights'] %}
+                        <li>{{insight}}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Economic Impact -->
+        {% if yield_impact['impact_analysis'] %}
+        <div class="economic-section">
+            <div class="economic-card">
+                <h3><i class="fas fa-dollar-sign"></i> Economic Impact Analysis</h3>
+                <div class="economic-metrics">
+                    <div class="economic-metric">
+                        <span class="metric-label">Total Economic Impact:</span>
+                        <span class="metric-value">${{yield_impact['summary']['total_economic_impact']}}</span>
+                    </div>
+                    <div class="economic-metric">
+                        <span class="metric-label">Average Yield Loss:</span>
+                        <span class="metric-value">{{yield_impact['summary']['avg_yield_loss']}}%</span>
+                    </div>
+                    {% if yield_impact['summary']['most_damaging_disease'] %}
+                    <div class="economic-metric">
+                        <span class="metric-label">Most Damaging Disease:</span>
+                        <span class="metric-value">{{yield_impact['summary']['most_damaging_disease'].replace('___', ' - ').replace('_', ' ')}}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script>
+        // Chart instances
+        let trendsChart, effectivenessChart, severityChart, seasonalChart;
+
+        // Initialize charts when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTrendsChart();
+            initializeEffectivenessChart();
+            initializeSeverityChart();
+            {% if seasonal['patterns'] %}
+            initializeSeasonalChart();
+            {% endif %}
+        });
+
+        function initializeTrendsChart() {
+            const ctx = document.getElementById('trendsChart').getContext('2d');
+            
+            // Process trends data
+            const trendsData = {{trends['trends'] | tojson}};
+            const dates = [...new Set(trendsData.map(item => item.date))].sort();
+            const diseases = [...new Set(trendsData.map(item => item.disease))];
+            
+            const datasets = diseases.map((disease, index) => {
+                const colors = ['#f44336', '#2196f3', '#4caf50', '#ff9800', '#9c27b0', '#00bcd4'];
+                const data = dates.map(date => {
+                    const entry = trendsData.find(item => item.date === date && item.disease === disease);
+                    return entry ? entry.count : 0;
+                });
+                
+                return {
+                    label: disease.replace('_', ' '),
+                    data: data,
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length] + '20',
+                    borderWidth: 2,
+                    fill: false
+                };
+            });
+
+            trendsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Cases'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeEffectivenessChart() {
+            const ctx = document.getElementById('effectivenessChart').getContext('2d');
+            const effectivenessData = {{effectiveness['effectiveness'] | tojson}};
+            
+            if (effectivenessData.length === 0) {
+                ctx.fillText('No treatment data available', 10, 50);
+                return;
+            }
+
+            const labels = effectivenessData.map(item => item.treatment);
+            const improvements = effectivenessData.map(item => item.avg_improvement);
+            const costs = effectivenessData.map(item => item.avg_cost);
+
+            effectivenessChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Average Improvement',
+                        data: improvements,
+                        backgroundColor: '#4caf50',
+                        borderColor: '#2e7d32',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Health Score Improvement'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function initializeSeverityChart() {
+            const ctx = document.getElementById('severityChart').getContext('2d');
+            const severityData = {{trends['summary']['severity_distribution'] | tojson}};
+            
+            const labels = Object.keys(severityData);
+            const data = Object.values(severityData);
+            const colors = {
+                'Mild': '#ffeb3b',
+                'Moderate': '#ff9800',
+                'Severe': '#f44336',
+                'Healthy': '#4caf50'
+            };
+
+            severityChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: labels.map(label => colors[label] || '#666'),
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        {% if seasonal['patterns'] %}
+        function initializeSeasonalChart() {
+            const ctx = document.getElementById('seasonalChart').getContext('2d');
+            const seasonalData = {{seasonal['patterns']['seasonal'] | tojson}};
+            
+            // Process seasonal data
+            const seasons = ['Spring', 'Summer', 'Fall', 'Winter'];
+            const diseases = [...new Set(seasonalData.map(item => item.initial_disease))];
+            
+            const datasets = diseases.slice(0, 5).map((disease, index) => { // Limit to top 5 diseases
+                const colors = ['#f44336', '#2196f3', '#4caf50', '#ff9800', '#9c27b0'];
+                const data = seasons.map(season => {
+                    const entry = seasonalData.find(item => item.season === season && item.initial_disease === disease);
+                    return entry ? entry.count : 0;
+                });
+                
+                return {
+                    label: disease.replace('___', ' - ').replace('_', ' '),
+                    data: data,
+                    backgroundColor: colors[index],
+                    borderColor: colors[index],
+                    borderWidth: 1
+                };
+            });
+
+            seasonalChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: seasons,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Cases'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Season'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+        {% endif %}
+
+        async function updateTrendsChart() {
+            const period = document.getElementById('trendsPeriod').value;
+            
+            try {
+                const response = await fetch(`/api/analytics/trends?period=${period}`);
+                const data = await response.json();
+                
+                // Update chart with new data
+                // Implementation would update the existing chart
+                console.log('Updated trends data:', data);
+            } catch (error) {
+                console.error('Error updating trends:', error);
+            }
+        }
+    </script>
+
+    <style>
+        .analytics-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 100px 2rem 2rem;
+        }
+
+        .analytics-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .analytics-header h1 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        .health-score-section {
+            margin-bottom: 3rem;
+        }
+
+        .health-score-card {
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            color: white;
+            padding: 2rem;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            box-shadow: 0 10px 30px rgba(46, 125, 50, 0.3);
+        }
+
+        .score-display {
+            flex-shrink: 0;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .score-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .score-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .score-details {
+            flex: 1;
+        }
+
+        .score-details h3 {
+            margin-bottom: 1rem;
+        }
+
+        .status-excellent { color: #4caf50; }
+        .status-good { color: #8bc34a; }
+        .status-fair { color: #ff9800; }
+        .status-poor { color: #f44336; }
+
+        .health-factors {
+            margin-bottom: 1rem;
+        }
+
+        .health-factors ul {
+            margin: 0.5rem 0 0 1.5rem;
+        }
+
+        .health-metrics {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .metric {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .metric-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .metric-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .metric-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+        }
+
+        .metric-content h3 {
+            margin: 0 0 0.5rem 0;
+            color: #333;
+            font-size: 1rem;
+        }
+
+        .metric-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2e7d32;
+            margin-bottom: 0.2rem;
+        }
+
+        .metric-period {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .chart-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .chart-header h3 {
+            margin: 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .chart-controls select {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+
+        .analysis-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .analysis-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .analysis-card h3 {
+            margin: 0 0 1.5rem 0;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .crops-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .crop-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .crop-name {
+            flex: 1;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .crop-count {
+            color: #666;
+            font-size: 0.9rem;
+            min-width: 80px;
+        }
+
+        .crop-bar {
+            flex: 2;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .crop-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+            transition: width 0.3s ease;
+        }
+
+        .severity-chart {
+            height: 250px;
+        }
+
+        .correlations-content {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.8rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .insight-item i {
+            color: #2e7d32;
+            margin-top: 0.2rem;
+        }
+
+        .seasonal-section {
+            margin-bottom: 3rem;
+        }
+
+        .seasonal-insights {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .seasonal-insights h4 {
+            color: #2e7d32;
+            margin-bottom: 1rem;
+        }
+
+        .seasonal-insights ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .seasonal-insights li {
+            margin-bottom: 0.5rem;
+            line-height: 1.4;
+        }
+
+        .economic-section {
+            margin-bottom: 3rem;
+        }
+
+        .economic-card {
+            background: linear-gradient(135deg, #ff9800, #ffb74d);
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.3);
+        }
+
+        .economic-card h3 {
+            margin: 0 0 1.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .economic-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .economic-metric {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .economic-metric .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .economic-metric .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .empty-state-small {
+            text-align: center;
+            padding: 2rem;
+            color: #666;
+        }
+
+        .empty-state-small i {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-state-small p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 1200px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .analytics-container {
+                padding: 80px 1rem 1rem;
+            }
+
+            .health-score-card {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .health-metrics {
+                justify-content: center;
+            }
+
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .analysis-section {
+                grid-template-columns: 1fr;
+            }
+
+            .economic-metrics {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+        }
+    </style>
+</body>
+</html>
