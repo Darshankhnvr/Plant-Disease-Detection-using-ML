@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="../static/css/weather-autofill.css" />
   </head>
   <body>
-    <!-- Navigation -->
+    <!-- Navigation --> 
     <nav class="modern-navbar">
       <div class="nav-container">
         <div class="nav-brand">
@@ -147,12 +147,12 @@
         </div>
 
         <!-- Analyze Your Plant Section -->
-        <div class="analyze-plant-section">
+        <div class="analyze-plant-section" id="analyze-section" data-section="main">
           <div class="upload-section" id="upload-section">
-            <div class="upload-header">
+            <div class="upload-header" {% if result %}style="display: none;"{% endif %}>
               <i class="fas fa-camera-retro"></i>
-              <h2>Analyze Your Plant</h2>
-              <p>
+              <h2 style="margin: 1rem 0;">Analyze Your Plant</h2>
+              <p style="margin-bottom: 2rem;">
                 Upload a clear image of the affected plant leaf for instant
                 diagnosis
               </p>
@@ -163,6 +163,7 @@
               method="POST"
               enctype="multipart/form-data"
               class="upload-form"
+              {% if result %}style="display: none;"{% endif %}
             >
               <div class="file-upload-wrapper">
                 <input
@@ -178,10 +179,10 @@
                     <i class="fas fa-cloud-upload-alt"></i>
                   </div>
                   <div class="upload-text">
-                    <span class="upload-title"
+                    <span class="upload-title" style="display: block; margin-bottom: 0.5rem;"
                       >Drop your image here or click to browse</span
                     >
-                    <span class="upload-subtitle"
+                    <span class="upload-subtitle" style="display: block;"
                       >Supports JPG, JPEG, PNG (Max 10MB)</span
                     >
                   </div>
@@ -220,7 +221,7 @@
               </button>
             </form>
 
-            <!-- Results Section -->
+            <!-- Results Section - MOVED TO BE OUTSIDE THE FORM -->
             {% if result %}
             <div class="results-section">
               <div class="results-header">
@@ -539,7 +540,7 @@
                   <div class="action-buttons">
                     <button
                       class="btn-secondary"
-                      onclick="window.location.reload()"
+                      onclick="showUploadForm()"
                     >
                       <i class="fas fa-redo"></i>
                       Analyze Another
@@ -1027,7 +1028,7 @@
     <div id="chatbot-window" style="position:fixed;bottom:100px;right:32px;z-index:10000;width:450px;max-width:95vw;height:500px;background:white;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.25);display:none;flex-direction:column;overflow:hidden;">
       <div style="background:#2e7d32;color:white;padding:1rem;font-weight:600;display:flex;align-items:center;justify-content:space-between;">
         <span><i class="fas fa-robot"></i> Plant Health Chatbot</span>
-        <span id="chatbot-close" style="cursor:pointer;font-size:1.2rem;">&times;</span>
+        <span id="chatbot-close" style="cursor:pointer;font-size:1.2rem;">×</span>
       </div>
       <div id="chatbot-messages" style="flex:1;max-height:400px;overflow-y:auto;padding:1rem;background:#f8f9fa;"></div>
       <form id="chatbot-form" style="display:flex;border-top:1px solid #eee;">
@@ -1246,6 +1247,42 @@ Remember: Deep, infrequent watering promotes strong root development!`;
     <script src="../static/js/bootstrap.bundle.min.js"></script>
     <script src="../static/js/weather-autofill.js"></script>
     <script>
+      // Debug and fix duplication of analyze plant section
+      document.addEventListener('DOMContentLoaded', function() {
+        console.log('Checking for duplicate sections...');
+        
+        const analyzeSections = document.querySelectorAll('.analyze-plant-section');
+        const uploadSections = document.querySelectorAll('.upload-section');
+        const uploadHeaders = document.querySelectorAll('.upload-header');
+        
+        console.log('Found analyze sections:', analyzeSections.length);
+        console.log('Found upload sections:', uploadSections.length);
+        console.log('Found upload headers:', uploadHeaders.length);
+        
+        // Log each section for debugging
+        analyzeSections.forEach((section, index) => {
+          console.log(`Analyze section ${index}:`, section);
+        });
+        
+        // Remove duplicates if found
+        if (analyzeSections.length > 1) {
+          console.log('Removing duplicate analyze sections...');
+          for (let i = 1; i < analyzeSections.length; i++) {
+            console.log('Removing section:', analyzeSections[i]);
+            analyzeSections[i].remove();
+          }
+        }
+        
+        // Also check for duplicate upload headers that might be causing visual duplication
+        if (uploadHeaders.length > 1) {
+          console.log('Found duplicate upload headers, removing extras...');
+          for (let i = 1; i < uploadHeaders.length; i++) {
+            console.log('Removing header:', uploadHeaders[i]);
+            uploadHeaders[i].remove();
+          }
+        }
+      });
+
       // File upload preview
       document
         .getElementById("file-input")
@@ -1275,56 +1312,6 @@ Remember: Deep, infrequent watering promotes strong root development!`;
           }
         });
 
-      // Create tracking case function
-      function createTrackingCase() {
-        {% if result %}
-        const plantName = prompt("Enter a name for this plant case:");
-        if (plantName) {
-          const predictionData = {
-            primary_disease: {
-              name: "{{prediction['primary_disease']['name']}}",
-              cause: "{{prediction['primary_disease']['cause']}}",
-              cure: "{{prediction['primary_disease']['cure']}}"
-            },
-            confidence: {{prediction['confidence']}},
-            severity: "{{prediction['severity']}}",
-            health_score: {{prediction['health_score']}}
-          };
-          
-          const imagePath = "{{imagepath}}";
-          
-          // Send data to create case
-          fetch('/api/create-case-from-analysis', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              plant_name: plantName,
-              prediction_data: predictionData,
-              image_path: imagePath,
-              notes: 'Initial analysis case'
-            })
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              alert('Tracking case created successfully!');
-              window.location.href = `/case/${data.case_id}`;
-            } else {
-              alert('Error creating case: ' + data.error);
-            }
-          })
-          .catch(error => {
-            console.error('Error:', error);
-            alert('Error creating tracking case.');
-          });
-        }
-        {% else %}
-        alert('No analysis results available. Please analyze an image first.');
-        {% endif %}
-      }
-
       // Download report function
       function downloadReport() {
         {% if result %}
@@ -1332,9 +1319,9 @@ Remember: Deep, infrequent watering promotes strong root development!`;
           // Prepare the prediction data for the report
           const predictionData = {
             primary_disease: {
-              name: "{{prediction['primary_disease']['name']}}",
-              cause: "{{prediction['primary_disease']['cause']}}",
-              cure: "{{prediction['primary_disease']['cure']}}"
+              name: "{{prediction['primary_disease']['name']|replace('"', '\\"')}}",
+              cause: "{{prediction['primary_disease']['cause']|replace('"', '\\"')}}",
+              cure: "{{prediction['primary_disease']['cure']|replace('"', '\\"')}}"
             },
             confidence: {{prediction['confidence']}},
             severity: "{{prediction['severity']}}",
@@ -1343,12 +1330,12 @@ Remember: Deep, infrequent watering promotes strong root development!`;
             top_predictions: [
               {% for pred in prediction['top_predictions'] %}
               {
-                name: "{{pred['name']}}",
+                name: "{{pred['name']|replace('"', '\\"')}}",
                 confidence: {{pred['confidence']}},
                 details: {
-                  name: "{{pred['details']['name']}}",
-                  cause: "{{pred['details']['cause']}}",
-                  cure: "{{pred['details']['cure']}}"
+                  name: "{{pred['details']['name']|replace('"', '\\"')}}",
+                  cause: "{{pred['details']['cause']|replace('"', '\\"')}}",
+                  cure: "{{pred['details']['cure']|replace('"', '\\"')}}"
                 }
               }{% if not loop.last %},{% endif %}
               {% endfor %}
@@ -1370,13 +1357,8 @@ Remember: Deep, infrequent watering promotes strong root development!`;
           downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Report...';
           downloadBtn.disabled = true;
           
-          // Create a temporary link and trigger download
-          const link = document.createElement('a');
-          link.href = downloadUrl;
-          link.download = 'plant_disease_report.pdf';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
+          // Trigger download
+          window.location.href = downloadUrl;
           
           // Reset button after a delay
           setTimeout(() => {
@@ -1444,9 +1426,9 @@ Remember: Deep, infrequent watering promotes strong root development!`;
           // Add prediction data
           const predictionData = {
             primary_disease: {
-              name: "{{prediction['primary_disease']['name']}}",
-              cause: "{{prediction['primary_disease']['cause']}}",
-              cure: "{{prediction['primary_disease']['cure']}}"
+              name: "{{prediction['primary_disease']['name']|replace('"', '\\"')}}",
+              cause: "{{prediction['primary_disease']['cause']|replace('"', '\\"')}}",
+              cure: "{{prediction['primary_disease']['cure']|replace('"', '\\"')}}"
             },
             confidence: {{prediction['confidence']}},
             severity: "{{prediction['severity']}}",
@@ -1504,7 +1486,6 @@ Remember: Deep, infrequent watering promotes strong root development!`;
         link.addEventListener("click", function (e) {
           const href = this.getAttribute("href");
           
-          // Only apply smooth scrolling to anchor links (starting with #)
           if (href.startsWith("#")) {
             e.preventDefault();
             const target = document.querySelector(href);
@@ -1512,7 +1493,6 @@ Remember: Deep, infrequent watering promotes strong root development!`;
               target.scrollIntoView({ behavior: "smooth" });
             }
           }
-          // For other links (like /disease-tracker), let them navigate normally
         });
       });
 
@@ -1538,17 +1518,17 @@ Remember: Deep, infrequent watering promotes strong root development!`;
                 alert('Could not fetch weather data.');
               }
               btn.disabled = false;
-              btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Use my location to auto-fill weather';
+              btn.innerHTML = '<i class="fas fa-cloud-sun"></i> Auto-fill Weather Data';
             })
             .catch(() => {
               alert('Could not fetch weather data.');
               btn.disabled = false;
-              btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Use my location to auto-fill weather';
+              btn.innerHTML = '<i class="fas fa-cloud-sun"></i> Auto-fill Weather Data';
             });
         }, function() {
           alert('Unable to retrieve your location.');
           btn.disabled = false;
-          btn.innerHTML = '<i class="fas fa-map-marker-alt"></i> Use my location to auto-fill weather';
+          btn.innerHTML = '<i class="fas fa-cloud-sun"></i> Auto-fill Weather Data';
         });
       });
 
@@ -1563,39 +1543,52 @@ Remember: Deep, infrequent watering promotes strong root development!`;
         }
       }
 
-      function viewAlert(alertId) {
-        // Redirect to crop calendar with alert focus
-        window.location.href = `/crop-calendar#alert-${alertId}`;
+      // Show upload form again (for "Analyze Another" button)
+      function showUploadForm() {
+        // Hide results section
+        const resultsSection = document.querySelector('.results-section');
+        if (resultsSection) {
+          resultsSection.style.display = 'none';
+        }
+        
+        // Show upload header and form
+        const uploadHeader = document.querySelector('.upload-header');
+        const uploadForm = document.querySelector('.upload-form');
+        
+        if (uploadHeader) {
+          uploadHeader.style.display = 'block';
+        }
+        
+        if (uploadForm) {
+          uploadForm.style.display = 'block';
+          // Reset the form
+          uploadForm.reset();
+          // Clear file preview
+          const filePreview = document.getElementById('file-preview');
+          if (filePreview) {
+            filePreview.innerHTML = '';
+            filePreview.style.display = 'none';
+          }
+        }
+        
+        // Scroll to upload section
+        scrollToUpload();
       }
 
       // Auto-refresh dashboard data every 5 minutes (only if user is active)
       setInterval(() => {
         if (document.visibilityState === 'visible') {
-          // Only refresh the dashboard sections, not the whole page
           fetch('/api/dashboard-data')
             .then(response => response.json())
             .then(data => {
               if (data.success) {
-                updateDashboardData(data);
+                // Update your dashboard elements here
               }
             })
             .catch(error => console.log('Dashboard refresh failed:', error));
         }
       }, 300000); // 5 minutes
 
-      function updateDashboardData(data) {
-        // Update farm health score
-        const scoreElement = document.querySelector('.score-number');
-        if (scoreElement && data.farm_health) {
-          scoreElement.textContent = data.farm_health.overall_score;
-        }
-        
-        // Update recent cases count
-        const casesElement = document.querySelector('.summary-item:first-child span');
-        if (casesElement && data.farm_health) {
-          casesElement.textContent = `${data.farm_health.recent_cases} recent cases`;
-        }
-      }
     </script>
   </body>
 </html>

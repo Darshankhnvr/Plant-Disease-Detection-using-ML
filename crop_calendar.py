@@ -210,7 +210,7 @@ class CropCalendar:
             
             schedule = []
             for crop in crops:
-                crop_id, user_id, crop_type, planting_date, location, variety, harvest_date, stage, created = crop
+                crop_id, user_id, crop_type, planting_date, location, variety, expected_harvest, stage, created = crop
                 
                 # Calculate current stage
                 planting_dt = datetime.strptime(planting_date, '%Y-%m-%d')
@@ -224,7 +224,7 @@ class CropCalendar:
                     'location': location,
                     'variety': variety,
                     'planting_date': planting_date,
-                    'harvest_date': harvest_date,
+                    'harvest_date': expected_harvest,
                     'current_stage': current_stage,
                     'days_since_planting': days_since_planting
                 })

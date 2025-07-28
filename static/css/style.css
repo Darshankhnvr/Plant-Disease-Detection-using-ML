@@ -161,8 +161,8 @@ body {
     min-height: 100vh;
     position: relative;
     display: flex;
-    align-items: center;
-    padding-top: 80px;
+    align-items: flex-start; /* Changed this from 'center' to prevent jumping */
+    padding-top: 100px; /* Added more top padding for visual balance */
 }
 
 .hero-background {
@@ -435,7 +435,7 @@ body {
 
 /* Results Section */
 .results-section {
-    margin-top: 2rem;
+    margin-top: 3rem; /* Give it space from the form */
     padding-top: 2rem;
     border-top: 1px solid #e0e0e0;
 }
@@ -458,7 +458,7 @@ body {
 
 .results-content {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1.5fr; /* Give more space to details on large screens */
     gap: 2rem;
     align-items: start;
 }
@@ -3985,8 +3985,7 @@ ction Info Section */
     .quick-actions-container .action-content p {
         font-size: 0.9rem;
     }
-}/
-* Hero Text Section */
+}/* Hero Text Section */
 .hero-text-section {
     text-align: center;
     padding: 2rem 0 3rem 0;
@@ -4510,5 +4509,11 @@ eparate Sections Styles */
     
     .recent-cases-section .case-item {
         padding: 1rem;
+    }
+}
+/* This ensures the results stack nicely on smaller screens */
+@media (max-width: 992px) {
+    .results-content {
+        grid-template-columns: 1fr;
     }
 }
