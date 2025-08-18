@@ -348,7 +348,7 @@ def generate_pdf_report(prediction_data, image_path, output_path):
             ['Disease Detected:', disease_name],
             ['Confidence Level:', f"{prediction_data['confidence']}%"],
             ['Severity Assessment:', prediction_data['severity']],
-            ['Plant Health Score:', f"{prediction_data['health_score']}/100"]
+            ['Plant Health Score:', f"{int(prediction_data['health_score'])}/100"]
         ]
         
         diagnosis_table = Table(diagnosis_data, colWidths=[2*inch, 3*inch])

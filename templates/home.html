@@ -236,6 +236,7 @@
                     alt="Analyzed plant"
                     class="result-image"
                   />
+                  <script>console.log("Image path:", "{{imagepath}}");</script>
                   <div class="image-overlay">
                     <i class="fas fa-search-plus"></i>
                   </div>
@@ -272,7 +273,7 @@
                       <div class="metric-card health">
                         <i class="fas fa-heart"></i>
                         <div class="metric-content">
-                          <span class="metric-value">{{prediction['health_score']}}/100</span>
+                          <span class="metric-value">{{prediction['health_score']|int}}/100</span>
                           <span class="metric-label">Health Score</span>
                         </div>
                       </div>
@@ -854,7 +855,7 @@
           <!-- Corn Diseases -->
           <div class="crop-category">
             <div class="crop-header">
-              <i class="fas fa-corn"></i>
+              <i class="fas fa-leaf"></i>
               <h3>Corn</h3>
               <span class="disease-count">4 conditions</span>
             </div>
@@ -881,7 +882,7 @@
           <!-- Grape Diseases -->
           <div class="crop-category">
             <div class="crop-header">
-              <i class="fas fa-grape-cluster"></i>
+              <i class="fas fa-grapes"></i>
               <h3>Grape</h3>
               <span class="disease-count">4 conditions</span>
             </div>
@@ -908,7 +909,7 @@
           <!-- Potato Diseases -->
           <div class="crop-category">
             <div class="crop-header">
-              <i class="fas fa-potato"></i>
+              <i class="fas fa-carrot"></i>
               <h3>Potato</h3>
               <span class="disease-count">3 conditions</span>
             </div>
