@@ -138,6 +138,43 @@ class WeatherIntegration:
         
         return risk_predictions
 
+    def check_for_frost(self, forecast_data, threshold_temp=0):
+        """Checks forecast data for temperatures below frost threshold.
+        Returns a list of dates when frost is expected.
+        """
+        frost_dates = set()
+        for item in forecast_data:
+            if item['temperature'] <= threshold_temp:
+                frost_dates.add(item['datetime'].split(' ')[0]) # Get date part only
+        return sorted(list(frost_dates))
+
+    def check_for_heavy_rain(self, forecast_data, threshold_prob=70, threshold_amount=10): # threshold_amount is illustrative
+        """Checks forecast data for heavy rain probability.
+        Returns a list of dates when heavy rain is expected.
+        """
+        heavy_rain_dates = set()
+        for item in forecast_data:
+            # Assuming 'rain_probability' is in percentage and 'rain' might be an amount
+            # OpenWeatherMap 'rain' field is usually for 1h or 3h volume
+            if item.get('rain_probability', 0) >= threshold_prob or item.get('rain', {}).get('3h', 0) >= threshold_amount:
+                heavy_rain_dates.add(item['datetime'].split(' ')[0])
+        return sorted(list(heavy_rain_dates))
+
+    def check_optimal_spraying_conditions(self, forecast_data, max_wind_speed=5, max_rain_prob=20):
+        """Checks forecast data for optimal spraying conditions (low wind, no significant rain).
+        Returns a list of datetimes when conditions are optimal.
+        """
+        optimal_times = []
+        for item in forecast_data:
+            # Assuming wind_speed is available in forecast items (it's in current weather)
+            # For forecast, OpenWeatherMap has 'wind' in 'list' items
+            wind_speed = item.get('wind', {}).get('speed', 0) # Need to ensure this is populated in get_weather_forecast
+            rain_prob = item.get('pop', 0) * 100 # 'pop' is probability of precipitation, 0-1, convert to %
+            
+            if wind_speed <= max_wind_speed and rain_prob <= max_rain_prob:
+                optimal_times.append(item['datetime'])
+        return optimal_times
+
 # Usage example
 def add_weather_route_to_flask():
     """Add this to your Flask app"""

@@ -110,19 +110,7 @@
                     </div>
                 </div>
 
-                <div class="budget-section">
-                    <h3><i class="fas fa-dollar-sign"></i> Budget Constraints (Optional)</h3>
-                    <div class="form-group">
-                        <label for="budget_limit">Maximum Budget per Hectare ($)</label>
-                        <input type="number" id="budget_limit" name="budget_limit" min="0" placeholder="e.g., 100">
-                    </div>
-                    <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="organic_only" name="organic_only">
-                            Organic treatments only
-                        </label>
-                    </div>
-                </div>
+                
 
                 <div class="form-actions">
                     <button type="submit" class="btn-primary">
@@ -155,13 +143,7 @@
                 </div>
             </div>
 
-            <!-- Application Schedule -->
-            <div id="application-schedule" class="schedule-section">
-                <h3><i class="fas fa-calendar-alt"></i> Application Schedule</h3>
-                <div id="schedule-content">
-                    <!-- Schedule will be populated here -->
-                </div>
-            </div>
+            
 
             <!-- Resistance Warnings -->
             <div id="resistance-warnings" class="warnings-section" style="display: none;">
@@ -196,8 +178,7 @@
                     temperature: formData.get('temperature') ? parseFloat(formData.get('temperature')) : null,
                     humidity: formData.get('humidity') ? parseFloat(formData.get('humidity')) : null
                 },
-                budget_limit: formData.get('budget_limit') ? parseFloat(formData.get('budget_limit')) : null,
-                organic_only: formData.get('organic_only') === 'on'
+                
             };
             
             try {
@@ -250,10 +231,7 @@
                 // Display IPM advice
                 displayIPMAdvice(recommendations.imp_advice || {});
                 
-                // Display application schedule
-                if (recommendations.application_schedule) {
-                    displayApplicationSchedule(recommendations.application_schedule);
-                }
+                
                 
                 // Display resistance warnings
                 if (recommendations.resistance_warnings && recommendations.resistance_warnings.length > 0) {
@@ -341,7 +319,7 @@
         }
         
         function displayIPMAdvice(ipmAdvice) {
-            const container = document.getElementById('imp-content');
+            const container = document.getElementById('ipm-content');
             if (!container) {
                 console.error('IPM content container not found');
                 return;
@@ -382,55 +360,7 @@
             }
         }
         
-        function displayApplicationSchedule(schedule) {
-            const container = document.getElementById('schedule-content');
-            if (!container) {
-                console.error('Schedule content container not found');
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            if (!schedule || !Array.isArray(schedule) || schedule.length === 0) {
-                container.innerHTML = '<p>No application schedule available.</p>';
-                return;
-            }
-            
-            try {
-                const table = document.createElement('table');
-                table.className = 'schedule-table';
-                
-                table.innerHTML = `
-                    <thead>
-                        <tr>
-                            <th>Application #</th>
-                            <th>Date</th>
-                            <th>Treatment</th>
-                            <th>Rate</th>
-                            <th>Timing</th>
-                            <th>Weather Check</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${schedule.map(app => `
-                            <tr>
-                                <td>${app.application_number || 'N/A'}</td>
-                                <td>${app.date || 'N/A'}</td>
-                                <td>${app.treatment || 'N/A'}</td>
-                                <td>${app.rate || 'N/A'}</td>
-                                <td>${app.timing || 'N/A'}</td>
-                                <td>${app.weather_check || 'N/A'}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                `;
-                
-                container.appendChild(table);
-            } catch (error) {
-                console.error('Error creating schedule table:', error);
-                container.innerHTML = '<p>Error loading application schedule.</p>';
-            }
-        }
+        
         
         function displayResistanceWarnings(warnings) {
             const container = document.getElementById('warnings-content');

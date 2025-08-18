@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta
 import json
 import sqlite3
+from yield_predictor import YieldPredictor
+from weather_integration import WeatherIntegration
+from environmental_correlator import EnvironmentalCorrelator
 
 class CropCalendar:
     """
@@ -10,6 +13,9 @@ class CropCalendar:
     def __init__(self, db_path='disease_tracking.db'):
         self.db_path = db_path
         self.init_calendar_db()
+        self.yield_predictor = YieldPredictor(db_path=db_path)
+        self.weather_integration = WeatherIntegration()
+        self.environmental_correlator = EnvironmentalCorrelator()
         
         # Crop growth stages and disease susceptibility
         self.crop_stages = {
@@ -80,9 +86,9 @@ class CropCalendar:
             cursor = conn.cursor()
             
             # Calculate expected harvest date
-            harvest_days = sum(stage['days'] for stage in self.crop_stages.get(crop_type, {}).values())
-            planting_dt = datetime.strptime(planting_date, '%Y-%m-%d')
-            expected_harvest = (planting_dt + timedelta(days=harvest_days)).strftime('%Y-%m-%d')
+            expected_harvest = self.yield_predictor.predict_harvest_date(
+                crop_type, planting_date, self.crop_stages
+            )
             
             cursor.execute('''
                 INSERT INTO crop_calendar 
@@ -96,7 +102,7 @@ class CropCalendar:
             calendar_id = cursor.lastrowid
             
             # Generate alerts for this crop using the same connection
-            self.generate_crop_alerts_with_connection(cursor, calendar_id, crop_type, planting_dt)
+            self.generate_crop_alerts_with_connection(cursor, calendar_id, crop_type, planting_dt, field_location)
             
             conn.commit()
             return calendar_id
@@ -113,11 +119,94 @@ class CropCalendar:
             if conn:
                 conn.close()
     
-    def generate_crop_alerts_with_connection(self, cursor, calendar_id, crop_type, planting_date):
+    def generate_crop_alerts_with_connection(self, cursor, calendar_id, crop_type, planting_date, field_location=""):
         """Generate preventive alerts for crop stages using existing connection"""
         current_date = planting_date
         stages = self.crop_stages.get(crop_type, {})
-        
+
+        # Placeholder for lat/lon - in a real app, resolve from field_location
+        # For now, using a generic central US location for demo purposes
+        lat = 39.8283
+        lon = -98.5795
+
+        # Get weather forecast for the next 7 days
+        forecast_data = self.weather_integration.get_weather_forecast(lat, lon, days=7)
+
+        if forecast_data:
+            # Check for frost
+            frost_dates = self.weather_integration.check_for_frost(forecast_data)
+            for f_date in frost_dates:
+                cursor.execute('''
+                    INSERT INTO calendar_alerts 
+                    (calendar_id, alert_type, alert_date, message, priority)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (
+                    calendar_id,
+                    'frost_warning',
+                    f_date,
+                    f"Frost warning for {crop_type} at {field_location} on {f_date}. Take protective measures!",
+                    'high'
+                ))
+
+            # Check for heavy rain
+            heavy_rain_dates = self.weather_integration.check_for_heavy_rain(forecast_data)
+            for r_date in heavy_rain_dates:
+                cursor.execute('''
+                    INSERT INTO calendar_alerts 
+                    (calendar_id, alert_type, alert_date, message, priority)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (
+                    calendar_id,
+                    'heavy_rain_warning',
+                    r_date,
+                    f"Heavy rain expected for {crop_type} at {field_location} on {r_date}. Ensure proper drainage.",
+                    'medium'
+                ))
+
+            # Check for optimal spraying conditions
+            optimal_spraying_times = self.weather_integration.check_optimal_spraying_conditions(forecast_data)
+            for s_time in optimal_spraying_times:
+                cursor.execute('''
+                    INSERT INTO calendar_alerts 
+                    (calendar_id, alert_type, alert_date, message, priority)
+                    VALUES (?, ?, ?, ?, ?)
+                ''', (
+                    calendar_id,
+                    'spraying_window',
+                    s_time.split(' ')[0], # Use date part only for alert_date
+                    f"Optimal spraying window for {crop_type} at {field_location} around {s_time}. Low wind and no significant rain.",
+                    'low'
+                ))
+
+        # Placeholder for current environmental conditions (e.g., from sensors or manual input)
+        # In a real application, this would come from actual data for the field_location
+        current_env_conditions = {
+            'temperature': 25, # Example value
+            'humidity': 70,    # Example value
+            'soil_ph': 6.5     # Example value
+        }
+
+        # Get environmental recommendations for nutrient/soil management
+        env_recommendations = self.environmental_correlator.get_environmental_recommendations(
+            crop_type, current_env_conditions
+        )
+
+        if env_recommendations and env_recommendations['recommendations']:
+            for rec_message in env_recommendations['recommendations']:
+                # Filter out generic "within optimal range" messages for alerts
+                if "within optimal range" not in rec_message.lower():
+                    cursor.execute('''
+                        INSERT INTO calendar_alerts 
+                        (calendar_id, alert_type, alert_date, message, priority)
+                        VALUES (?, ?, ?, ?, ?)
+                    ''', (
+                        calendar_id,
+                        'environmental_recommendation',
+                        datetime.now().strftime('%Y-%m-%d'), # Alert for today
+                        f"Environmental Recommendation for {crop_type} at {field_location}: {rec_message}",
+                        'medium'
+                    ))
+
         for stage_name, stage_info in stages.items():
             # Alert for stage transition
             alert_date = current_date + timedelta(days=stage_info['days'] - 3)  # 3 days before

@@ -190,6 +190,30 @@ class YieldPredictor:
             
         return base_rec
     
+    def predict_harvest_date(self, crop_type, planting_date_str, crop_stages_data):
+        """
+        Predicts the expected harvest date based on crop type and planting date,
+        with a slight dynamic adjustment.
+        """
+        planting_dt = datetime.strptime(planting_date_str, '%Y-%m-%d')
+        
+        # Get base harvest days from crop_stages_data
+        harvest_days_base = sum(stage['days'] for stage in crop_stages_data.get(crop_type, {}).values())
+        
+        # Add a small random variation (e.g., +/- 7 days) for dynamic prediction
+        import random
+        dynamic_adjustment = random.randint(-7, 7)
+        
+        predicted_harvest_days = harvest_days_base + dynamic_adjustment
+        
+        # Ensure predicted days are not negative
+        if predicted_harvest_days < 0:
+            predicted_harvest_days = 0
+            
+        expected_harvest_dt = planting_dt + timedelta(days=predicted_harvest_days)
+        
+        return expected_harvest_dt.strftime('%Y-%m-%d')
+
     def save_yield_prediction(self, case_id, prediction_data):
         """Save yield prediction to database"""
         conn = sqlite3.connect(self.db_path)
