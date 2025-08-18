@@ -108,23 +108,8 @@
                             <span class="label">Expected Harvest:</span>
                             <span class="value">{{crop['harvest_date']}}</span>
                         </div>
-                        <div class="detail-row">
-                            <span class="label">Current Stage:</span>
-                            <span class="value stage-{{crop['current_stage']}}">{{crop['current_stage'].title()}}</span>
-                        </div>
-                        <div class="detail-row">
-                            <span class="label">Days Since Planting:</span>
-                            <span class="value">{{crop['days_since_planting']}} days</span>
-                        </div>
                     </div>
                     
-                    <div class="crop-progress">
-                        <div class="progress-bar">
-                            {% set progress = (crop['days_since_planting'] / 120 * 100) | round %}
-                            <div class="progress-fill" style="width: {{progress}}%"></div>
-                        </div>
-                        <span class="progress-text">{{progress}}% Complete</span>
-                    </div>
                 </div>
                 {% endfor %}
             </div>
@@ -517,7 +502,7 @@
             border: 1px solid #ddd;
             border-radius: 8px;
             font-size: 1rem;
-            box-sizing: border-box;
+            box-sizing: border_box;
         }
 
         .form-group input:focus,

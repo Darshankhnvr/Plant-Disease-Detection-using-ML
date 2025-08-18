@@ -153,8 +153,7 @@ class SmartTreatmentAdvisor:
             'primary_recommendations': recommendations[:3],
             'all_options': recommendations,
             'ipm_advice': ipm_advice,
-            'resistance_warnings': self.check_resistance_warnings(disease_name),
-            'application_schedule': self.generate_application_schedule(recommendations[0] if recommendations else None)
+            'resistance_warnings': self.check_resistance_warnings(disease_name)
         }
     
     def adjust_treatment_for_conditions(self, treatment, severity, env_data, crop_stage):
@@ -225,29 +224,83 @@ class SmartTreatmentAdvisor:
             'cultural_practices': [],
             'biological_control': [],
             'monitoring': [],
-            'prevention': []
+            'prevention': [],
+            'general_advice': []
         }
         
-        if 'blight' in disease_name.lower():
-            ipm_strategies['cultural_practices'] = [
+        disease_name_lower = disease_name.lower()
+
+        # Disease-specific advice
+        if 'blight' in disease_name_lower:
+            ipm_strategies['cultural_practices'].extend([
                 'Improve air circulation by proper plant spacing',
                 'Avoid overhead watering, use drip irrigation',
                 'Remove infected plant debris immediately',
                 'Rotate crops with non-host plants'
-            ]
-            ipm_strategies['monitoring'] = [
+            ])
+            ipm_strategies['monitoring'].extend([
                 'Check plants daily during high humidity periods',
                 'Monitor weather forecasts for disease-favorable conditions',
                 'Use disease prediction models for timing treatments'
-            ]
-        
-        if 'scab' in disease_name.lower():
-            ipm_strategies['prevention'] = [
+            ])
+            ipm_strategies['prevention'].append('Apply preventative fungicides during favorable conditions.')
+
+        if 'scab' in disease_name_lower:
+            ipm_strategies['prevention'].extend([
                 'Plant resistant varieties when available',
                 'Apply dormant season treatments',
                 'Maintain proper pruning for air circulation'
-            ]
+            ])
+            ipm_strategies['cultural_practices'].append('Sanitize pruning tools after each use.')
+
+        if 'rot' in disease_name_lower:
+            ipm_strategies['cultural_practices'].append('Ensure good drainage to prevent waterlogging.')
+            ipm_strategies['prevention'].append('Avoid injuring plants during cultivation.')
+
+        if 'spot' in disease_name_lower:
+            ipm_strategies['cultural_practices'].append('Remove and destroy affected leaves.')
+            ipm_strategies['monitoring'].append('Inspect undersides of leaves for early signs.')
+
+        # Environmental data-driven advice
+        if env_data:
+            humidity = env_data.get('humidity')
+            temperature = env_data.get('temperature')
+            soil_ph = env_data.get('soil_ph')
+
+            if humidity is not None and humidity > 75:
+                ipm_strategies['cultural_practices'].append('Increase air circulation around plants (e.g., pruning).')
+                ipm_strategies['monitoring'].append('Be vigilant for fungal diseases in high humidity.')
+            
+            if temperature is not None:
+                if temperature > 30:
+                    ipm_strategies['general_advice'].append('Ensure adequate watering during hot periods to reduce plant stress.')
+                elif temperature < 10:
+                    ipm_strategies['general_advice'].append('Protect sensitive plants from cold stress.')
+
+            if soil_ph is not None:
+                if soil_ph < 6.0:
+                    ipm_strategies['general_advice'].append('Consider liming to raise soil pH for better nutrient availability.')
+                elif soil_ph > 7.5:
+                    ipm_strategies['general_advice'].append('Consider adding organic matter to lower soil pH.')
+
+        # Crop stage-specific advice
+        if crop_stage == 'seedling':
+            ipm_strategies['prevention'].append('Use sterile potting mix and clean trays to prevent damping-off.')
+        elif crop_stage == 'flowering':
+            ipm_strategies['general_advice'].append('Minimize pesticide application during flowering to protect pollinators.')
+        elif crop_stage == 'fruiting':
+            ipm_strategies['cultural_practices'].append('Harvest ripe fruits promptly to reduce disease spread.')
+
+        # General IPM advice (always included if not already covered)
+        if not ipm_strategies['cultural_practices']:
+            ipm_strategies['cultural_practices'].append('Practice good sanitation in the growing area.')
+        if not ipm_strategies['monitoring']:
+            ipm_strategies['monitoring'].append('Regularly inspect plants for any signs of pests or diseases.')
+        if not ipm_strategies['prevention']:
+            ipm_strategies['prevention'].append('Choose disease-resistant varieties where possible.')
         
+        ipm_strategies['general_advice'].append('Consult local agricultural extension for region-specific advice.')
+
         return ipm_strategies
     
     def check_resistance_warnings(self, disease_name):

@@ -853,6 +853,15 @@ def mark_alert_read(alert_id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
 
+@app.route('/delete-crop/<int:crop_id>', methods=['POST'])
+def delete_crop(crop_id):
+    """Delete a crop from the calendar"""
+    try:
+        crop_calendar.delete_crop_from_calendar(crop_id)
+        return jsonify({'success': True, 'message': 'Crop deleted successfully!'})
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Error deleting crop: {str(e)}'})
+
 # ==================== TREATMENT ADVISOR ROUTES ====================
 
 @app.route('/treatment-advisor')

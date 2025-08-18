@@ -36,6 +36,40 @@ class CropCalendar:
                 'bud_break': {'days': 21, 'diseases': ['apple_scab'], 'care': 'Fungicide application, sanitation'},
                 'bloom': {'days': 14, 'diseases': ['fire_blight'], 'care': 'Avoid overhead watering, bee protection'},
                 'fruit_development': {'days': 120, 'diseases': ['cedar_rust', 'black_rot'], 'care': 'Regular monitoring, thinning'}
+            },
+            'Grape': {
+                'dormant': {'days': 60, 'diseases': ['canker'], 'care': 'Pruning, dormant oil spray'},
+                'bud_break': {'days': 30, 'diseases': ['powdery_mildew'], 'care': 'Fungicide application, sanitation'},
+                'flowering': {'days': 20, 'diseases': ['downy_mildew'], 'care': 'Avoid overhead watering'},
+                'fruit_set': {'days': 45, 'diseases': ['black_rot'], 'care': 'Thinning, pest control'},
+                'veraison': {'days': 30, 'diseases': ['botrytis_bunch_rot'], 'care': 'Canopy management'},
+                'harvest': {'days': 15, 'diseases': [], 'care': 'Monitor sugar levels'}
+            },
+            'Corn': {
+                'planting': {'days': 7, 'diseases': ['seed_rot'], 'care': 'Ensure good soil contact'},
+                'emergence': {'days': 14, 'diseases': ['damping_off'], 'care': 'Monitor for cutworms'},
+                'vegetative': {'days': 40, 'diseases': ['common_rust', 'gray_leaf_spot'], 'care': 'Fertilize, weed control'},
+                'tasseling_silking': {'days': 20, 'diseases': ['smut'], 'care': 'Ensure adequate water for pollination'},
+                'grain_fill': {'days': 45, 'diseases': ['ear_rot'], 'care': 'Monitor for pests, maintain moisture'}
+            },
+            'Pepper': {
+                'seedling': {'days': 21, 'diseases': ['damping_off'], 'care': 'Warm, moist conditions'},
+                'vegetative': {'days': 40, 'diseases': ['bacterial_spot', 'phytophthora_blight'], 'care': 'Regular watering, support'},
+                'flowering': {'days': 30, 'diseases': ['blossom_end_rot'], 'care': 'Consistent watering, calcium'},
+                'fruiting': {'days': 60, 'diseases': ['anthracnose', 'cercospora_leaf_spot'], 'care': 'Harvest regularly, pest control'}
+            },
+            'Strawberry': {
+                'planting': {'days': 14, 'diseases': ['root_rot'], 'care': 'Well-drained soil'},
+                'vegetative': {'days': 45, 'diseases': ['leaf_spot', 'powdery_mildew'], 'care': 'Runner management, fertilize'},
+                'flowering': {'days': 30, 'diseases': ['botrytis_fruit_rot'], 'care': 'Protect from rain, good air circulation'},
+                'fruiting': {'days': 30, 'diseases': ['anthracnose_fruit_rot'], 'care': 'Harvest frequently, pest control'}
+            },
+            'Cherry': {
+                'dormant': {'days': 90, 'diseases': ['canker'], 'care': 'Pruning, dormant oil spray'},
+                'bud_break': {'days': 25, 'diseases': ['brown_rot'], 'care': 'Fungicide application'},
+                'flowering': {'days': 15, 'diseases': ['blossom_blight'], 'care': 'Avoid overhead watering'},
+                'fruit_development': {'days': 60, 'diseases': ['cherry_leaf_spot', 'powdery_mildew'], 'care': 'Thinning, pest control'},
+                'harvest': {'days': 10, 'diseases': [], 'care': 'Monitor ripeness'}
             }
         }
     
@@ -101,6 +135,23 @@ class CropCalendar:
             
             calendar_id = cursor.lastrowid
             
+            # Calculate expected harvest date
+            planting_dt = datetime.strptime(planting_date, '%Y-%m-%d') # Define planting_dt here
+            expected_harvest = self.yield_predictor.predict_harvest_date(
+                crop_type, planting_date, self.crop_stages
+            )
+
+            cursor.execute('''
+                INSERT INTO crop_calendar
+                (user_id, crop_type, planting_date, field_location, variety, expected_harvest, current_stage, created_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                user_id, crop_type, planting_date, field_location, variety,
+                expected_harvest, 'seedling', datetime.now().isoformat()
+            ))
+
+            calendar_id = cursor.lastrowid
+
             # Generate alerts for this crop using the same connection
             self.generate_crop_alerts_with_connection(cursor, calendar_id, crop_type, planting_dt, field_location)
             
@@ -352,6 +403,29 @@ class CropCalendar:
             if conn:
                 conn.rollback()
             raise Exception(f"Error marking alert as read: {str(e)}")
+        finally:
+            if conn:
+                conn.close()
+
+    def delete_crop_from_calendar(self, crop_id):
+        """Delete a crop and its associated alerts from the calendar"""
+        conn = None
+        try:
+            conn = sqlite3.connect(self.db_path, timeout=30.0)
+            cursor = conn.cursor()
+            
+            # Delete associated alerts first
+            cursor.execute('DELETE FROM calendar_alerts WHERE calendar_id = ?', (crop_id,))
+            
+            # Delete the crop entry
+            cursor.execute('DELETE FROM crop_calendar WHERE id = ?', (crop_id,))
+            
+            conn.commit()
+            return True
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            raise Exception(f"Error deleting crop: {str(e)}")
         finally:
             if conn:
                 conn.close()
