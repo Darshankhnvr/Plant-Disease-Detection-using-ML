@@ -340,7 +340,7 @@
                         </div>
                       </div>
                     </div>
-                    {% endif %}
+                    {% endif %} 
                     
                     <!-- Primary Disease Details -->
                     <div class="info-section">
@@ -437,7 +437,7 @@
                       </div>
                       {% endif %}
                     </div>
-                    {% endif %}
+                    {% endif %} 
                     
                     <!-- Legacy Environmental Analysis (for additional insights) -->
                     {% if prediction.get('legacy_environmental_analysis') %}
@@ -541,8 +541,7 @@
                   <div class="action-buttons">
                     <button
                       class="btn-secondary"
-                      onclick="showUploadForm()"
-                    >
+                      onclick="showUploadForm()">
                       <i class="fas fa-redo"></i>
                       Analyze Another
                     </button>
@@ -575,7 +574,7 @@
                 </div>
                 <div class="case-content">
                   <h4>{{case[1]}}</h4>
-                  <p class="case-disease">{{case[2].replace('___', ' - ').replace('_', ' ')}}</p>
+                  <p class="case-disease">{{case[2].replace('___', ' - ').replace('_', ' ')}}
                   <div class="case-meta">
                     <span class="severity-badge severity-{{case[3].lower()}}">{{case[3]}}</span>
                     <span class="case-date">{{case[4][:10]}}</span>
@@ -1083,7 +1082,7 @@ If you don't know, say so. Always encourage sustainable and safe farming.`;
           // Convert numbered lists to proper format
           .replace(/^\d+\.\s*\*\s*/gm, (match) => {
             const number = match.match(/\d+/)[0];
-            return `${number}. `;
+            return `${number}. `; 
           })
           // Convert bullet points to proper format
           .replace(/^\s*\*\s*/gm, '• ')
@@ -1145,100 +1144,16 @@ If you don't know, say so. Always encourage sustainable and safe farming.`;
         const question = userMsg.toLowerCase();
         
         if (question.includes('insect') || question.includes('pest') || question.includes('bug')) {
-          return `Here are effective ways to safeguard crops from insects:
-
-1. NATURAL METHODS:
-   • Plant companion crops (marigolds, basil, garlic)
-   • Use neem oil spray (mix 2ml neem oil + 1 liter water)
-   • Apply diatomaceous earth around plants
-   • Use garlic or chili pepper sprays
-
-2. PHYSICAL BARRIERS:
-   • Use fine mesh nets to cover plants
-   • Install yellow sticky traps
-   • Create barriers with crushed eggshells
-   • Use floating row covers
-
-3. CULTURAL PRACTICES:
-   • Rotate crops annually
-   • Remove plant debris regularly
-   • Maintain proper spacing between plants
-   • Time planting to avoid peak pest seasons
-
-4. BIOLOGICAL CONTROL:
-   • Encourage beneficial insects (ladybugs, lacewings)
-   • Use Bacillus thuringiensis (Bt) for caterpillars
-   • Attract birds with feeders and water
-   • Plant nectar-rich flowers for pollinators
-
-5. CHEMICAL CONTROL (Last Resort):
-   • Use organic pesticides like pyrethrin
-   • Apply early morning or evening
-   • Follow label instructions carefully
-   • Target specific pests, not broad spectrum
-
-Start with natural methods first, as they're safer and more sustainable for long-term crop health!`;
+          return `Here are effective ways to safeguard crops from insects:\n\n1. NATURAL METHODS:\n   • Plant companion crops (marigolds, basil, garlic)\n   • Use neem oil spray (mix 2ml neem oil + 1 liter water)\n   • Apply diatomaceous earth around plants\n   • Use garlic or chili pepper sprays\n\n2. PHYSICAL BARRIERS:\n   • Use fine mesh nets to cover plants\n   • Install yellow sticky traps\n   • Create barriers with crushed eggshells\n   • Use floating row covers\n\n3. CULTURAL PRACTICES:\n   • Rotate crops annually\n   • Remove plant debris regularly\n   • Maintain proper spacing between plants\n   • Time planting to avoid peak pest seasons\n\n4. BIOLOGICAL CONTROL:\n   • Encourage beneficial insects (ladybugs, lacewings)\n   • Use Bacillus thuringiensis (Bt) for caterpillars\n   • Attract birds with feeders and water\n   • Plant nectar-rich flowers for pollinators\n5. CHEMICAL CONTROL (Last Resort):\n   • Use organic pesticides like pyrethrin\n   • Apply early morning or evening\n   • Follow label instructions carefully\n   • Target specific pests, not broad spectrum\n\nStart with natural methods first, as they're safer and more sustainable for long-term crop health!`;
         }
         
         if (question.includes('disease') || question.includes('fungus') || question.includes('mold')) {
-          return `To prevent plant diseases:
-
-1. GOOD AIR CIRCULATION:
-   • Space plants properly for ventilation
-   • Prune dense foliage regularly
-   • Avoid overcrowding plants
-
-2. WATER MANAGEMENT:
-   • Water at the base, avoid wetting leaves
-   • Water early morning to allow drying
-   • Use drip irrigation when possible
-
-3. SANITATION PRACTICES:
-   • Disinfect pruning tools between plants
-   • Remove and destroy infected plant parts
-   • Clean garden equipment regularly
-
-4. PREVENTIVE MEASURES:
-   • Use disease-resistant varieties
-   • Rotate crops annually
-   • Apply organic fungicides preventively
-
-5. MONITORING:
-   • Check plants regularly for symptoms
-   • Look for spots, wilting, or unusual growth
-   • Act quickly when problems are detected
-
+          return `To prevent plant diseases:\n\n1. GOOD AIR CIRCULATION:\n   • Space plants properly for ventilation\n   • Prune dense foliage regularly\n   • Avoid overcrowding plants\n\n2. WATER MANAGEMENT:\n   • Water at the base, avoid wetting leaves\n   • Water early morning to allow drying\n   • Use drip irrigation when possible\n\n3. SANITATION PRACTICES:\n   • Disinfect pruning tools between plants\n   • Remove and destroy infected plant parts\n   • Clean garden equipment regularly\n4. PREVENTIVE MEASURES:\n   • Use disease-resistant varieties\n   • Rotate crops annually\n   • Apply organic fungicides preventively\n5. MONITORING:\n   • Check plants regularly for symptoms\n   • Look for spots, wilting, or unusual growth\n   • Act quickly when problems are detected\n
 Early detection and prevention are key to maintaining healthy crops!`;
         }
         
         if (question.includes('water') || question.includes('irrigation')) {
-          return `Smart watering tips for healthy plants:
-
-1. WATERING TECHNIQUES:
-   • Water deeply, not frequently
-   • Give plants a good soak to reach roots
-   • Avoid light sprinkles that only wet surface
-
-2. TIMING:
-   • Water early morning to reduce evaporation
-   • Avoid evening watering to prevent fungal growth
-   • Adjust frequency based on weather conditions
-
-3. SOIL MONITORING:
-   • Check soil moisture 2 inches deep
-   • Water when soil feels dry to touch
-   • Use moisture meters for accuracy
-
-4. EFFICIENT METHODS:
-   • Use soaker hoses or drip irrigation
-   • Group plants with similar water needs
-   • Apply mulch to retain moisture
-
-5. SIGNS OF PROBLEMS:
-   • Yellow leaves often indicate overwatering
-   • Wilting leaves suggest underwatering
-   • Adjust watering based on plant response
-
+          return `Smart watering tips for healthy plants:\n\n1. WATERING TECHNIQUES:\n   • Water deeply, not frequently\n   • Give plants a good soak to reach roots\n   • Avoid light sprinkles that only wet surface\n2. TIMING:\n   • Water early morning to reduce evaporation\n   • Avoid evening watering to prevent fungal growth\n   • Adjust frequency based on weather conditions\n3. SOIL MONITORING:\n   • Check soil moisture 2 inches deep\n   • Water when soil feels dry to touch\n   • Use moisture meters for accuracy\n4. EFFICIENT METHODS:\n   • Use soaker hoses or drip irrigation\n   • Group plants with similar water needs\n   • Apply mulch to retain moisture\n5. SIGNS OF PROBLEMS:\n   • Yellow leaves often indicate overwatering\n   • Wilting leaves suggest underwatering\n   • Adjust watering based on plant response\n
 Remember: Deep, infrequent watering promotes strong root development!`;
         }
         
@@ -1320,9 +1235,9 @@ Remember: Deep, infrequent watering promotes strong root development!`;
           // Prepare the prediction data for the report
           const predictionData = {
             primary_disease: {
-              name: "{{prediction['primary_disease']['name']|replace('"', '\\"')}}",
-              cause: "{{prediction['primary_disease']['cause']|replace('"', '\\"')}}",
-              cure: "{{prediction['primary_disease']['cure']|replace('"', '\\"')}}"
+              name: "{{prediction['primary_disease']['name']|replace('"', '\"')}}",
+              cause: "{{prediction['primary_disease']['cause']|replace('"', '\"')}}",
+              cure: "{{prediction['primary_disease']['cure']|replace('"', '\"')}}"
             },
             confidence: {{prediction['confidence']}},
             severity: "{{prediction['severity']}}",
@@ -1331,12 +1246,12 @@ Remember: Deep, infrequent watering promotes strong root development!`;
             top_predictions: [
               {% for pred in prediction['top_predictions'] %}
               {
-                name: "{{pred['name']|replace('"', '\\"')}}",
+                name: "{{pred['name']|replace('"', '\"')}}",
                 confidence: {{pred['confidence']}},
                 details: {
-                  name: "{{pred['details']['name']|replace('"', '\\"')}}",
-                  cause: "{{pred['details']['cause']|replace('"', '\\"')}}",
-                  cure: "{{pred['details']['cure']|replace('"', '\\"')}}"
+                  name: "{{pred['details']['name']|replace('"', '\"')}}",
+                  cause: "{{pred['details']['cause']|replace('"', '\"')}}",
+                  cure: "{{pred['details']['cure']|replace('"', '\"')}}"
                 }
               }{% if not loop.last %},{% endif %}
               {% endfor %}
@@ -1386,7 +1301,7 @@ Remember: Deep, infrequent watering promotes strong root development!`;
         modal.innerHTML = `
           <div class="create-case-content">
             <div class="case-form-header">
-              <h3><i class="fas fa-seedling"></i> Create Disease Tracking Case</h3>
+              <h3><i class="fas fa-leaf"></i> Create Disease Tracking Case</h3>
               <p>Start monitoring this plant's health progression over time</p>
             </div>
             <div class="case-form-body">
@@ -1427,9 +1342,9 @@ Remember: Deep, infrequent watering promotes strong root development!`;
           // Add prediction data
           const predictionData = {
             primary_disease: {
-              name: "{{prediction['primary_disease']['name']|replace('"', '\\"')}}",
-              cause: "{{prediction['primary_disease']['cause']|replace('"', '\\"')}}",
-              cure: "{{prediction['primary_disease']['cure']|replace('"', '\\"')}}"
+              name: "{{prediction['primary_disease']['name']|replace('"', '\"')}}",
+              cause: "{{prediction['primary_disease']['cause']|replace('"', '\"')}}",
+              cure: "{{prediction['primary_disease']['cure']|replace('"', '\"')}}"
             },
             confidence: {{prediction['confidence']}},
             severity: "{{prediction['severity']}}",
@@ -1491,7 +1406,10 @@ Remember: Deep, infrequent watering promotes strong root development!`;
             e.preventDefault();
             const target = document.querySelector(href);
             if (target) {
-              target.scrollIntoView({ behavior: "smooth" });
+              target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+              });
             }
           }
         });
@@ -1537,7 +1455,7 @@ Remember: Deep, infrequent watering promotes strong root development!`;
       function scrollToUpload() {
         const uploadSection = document.querySelector('.upload-section');
         if (uploadSection) {
-          uploadSection.scrollIntoView({ 
+          uploadSection.scrollIntoView({
             behavior: 'smooth',
             block: 'start'
           });

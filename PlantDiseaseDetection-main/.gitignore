@@ -1,0 +1,35 @@
+.venv/
+hybrid_plant_disease_model.pth
+training_log.txt
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+.vscode/
+PlantVillage/
+
+# Python files
+__pycache__/
+*.pyc
+
+# Virtual environment
+.venv/
+
+# VSCode/editor config
+.vscode/
+*.swp
+
+# macOS/Windows system files
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+*.tmp
+
+# (Optional) PyTorch model weights
+*.pt
+*.pth
+
+# (Optional) Large datasets
+PlantVillage/
