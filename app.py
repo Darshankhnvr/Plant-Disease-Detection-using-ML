@@ -1,4 +1,4 @@
-from flask import Flask, render_template,request,redirect,send_from_directory,url_for,jsonify
+from flask import Flask, render_template, request, redirect, send_from_directory, url_for, jsonify, send_file, make_response
 import numpy as np
 import json
 import uuid
@@ -16,6 +16,8 @@ from datetime import datetime
 import os
 from PIL import Image as PILImage
 import io
+import qrcode
+import report_generator
 from database import DiseaseTracker
 from yield_predictor import YieldPredictor
 from environmental_correlator import EnvironmentalCorrelator
@@ -633,6 +635,66 @@ def view_case(case_id):
                          treatments=treatments,
                          yield_predictions=yield_predictions)
 
+@app.route('/case/<case_id>/report')
+def download_case_report(case_id):
+    """Download PDF report for a case"""
+    case_data = db_tracker.get_disease_case(case_id)
+    if not case_data:
+        return redirect('/disease-tracker')
+        
+    treatments = db_tracker.get_treatments(case_id)
+    yield_predictions = yield_predictor.get_yield_predictions(case_id)
+    
+    pdf_buffer = report_generator.generate_case_report(case_data, treatments, yield_predictions)
+    
+    response = make_response(pdf_buffer.getvalue())
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = f'attachment; filename=CropSense_Report_{case_id[:8]}.pdf'
+    return response
+
+@app.route('/case/<case_id>/qr')
+def get_case_qr(case_id):
+    """Generate QR code for case report URL"""
+    import socket
+    
+    # Get the local network IP instead of 127.0.0.1
+    local_ip = '127.0.0.1'
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('10.255.255.255', 1))
+        local_ip = s.getsockname()[0]
+        s.close()
+    except Exception:
+        pass
+        
+    # Get the port the server is running on
+    port = request.environ.get('SERVER_PORT', '5000')
+    
+    # If the user accessed via localhost, replace it with the LAN IP
+    if '127.0.0.1' in request.host_url or 'localhost' in request.host_url:
+        base_url = f"http://{local_ip}:{port}"
+    else:
+        base_url = request.host_url.rstrip('/')
+        
+    report_url = base_url + f'/case/{case_id}/report'
+    
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(report_url)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    img_buffer = io.BytesIO()
+    img.save(img_buffer, format='PNG')
+    img_buffer.seek(0)
+    
+    return send_file(img_buffer, mimetype='image/png')
+
 @app.route('/add-progression/<case_id>', methods=['POST'])
 def add_progression(case_id):
     """Add new progression entry"""
@@ -1037,4 +1099,4 @@ def get_dashboard_data():
         return jsonify({'success': False, 'error': str(e)})
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
