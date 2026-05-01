@@ -20,42 +20,37 @@
         "cure": "Maintain good cultural practices for optimal health."
     },
     {
-        "name": "Background_without_leaves",
-        "cause": "No disease or plant detected.",
-        "cure": "Not applicable."
-    },
-    {
         "name": "Blueberry___healthy",
         "cause": "No disease present.",
         "cure": "Maintain good cultural practices for optimal health."
     },
     {
-        "name": "Cherry___Powdery_mildew",
+        "name": "Cherry_(including_sour)___Powdery_mildew",
         "cause": "Fungus Podosphaera clandestina.",
         "cure": "Apply sulfur-based or fungicide treatments. Ensure good air circulation."
     },
     {
-        "name": "Cherry___healthy",
+        "name": "Cherry_(including_sour)___healthy",
         "cause": "No disease present.",
         "cure": "Maintain good cultural practices for optimal health."
     },
     {
-        "name": "Corn___Cercospora_leaf_spot Gray_leaf_spot",
+        "name": "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
         "cause": "Fungus Cercospora zeae-maydis.",
         "cure": "Use resistant hybrids and fungicide sprays."
     },
     {
-        "name": "Corn___Common_rust",
+        "name": "Corn_(maize)___Common_rust_",
         "cause": "Fungus Puccinia sorghi.",
         "cure": "Apply fungicides and plant resistant varieties."
     },
     {
-        "name": "Corn___Northern_Leaf_Blight",
+        "name": "Corn_(maize)___Northern_Leaf_Blight",
         "cause": "Fungus Exserohilum turcicum.",
         "cure": "Use resistant varieties and fungicides."
     },
     {
-        "name": "Corn___healthy",
+        "name": "Corn_(maize)___healthy",
         "cause": "No disease present.",
         "cure": "Maintain good cultural practices for optimal health."
     },

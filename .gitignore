@@ -64,3 +64,14 @@ reports/*.pdf
 *.temp
 fix_*.py
 temp_*.py
+
+# Added directories
+PlantVillage
+report
+static/images
+PlantVillage/color/test/Apple___Apple_scab/0c620ec5-11cf-4120-94ab-1311e99df147___FREC_Scab 3131.JPG
+
+# Models and Virtual Envs
+*.pth
+tf-env/
+uploadimages/

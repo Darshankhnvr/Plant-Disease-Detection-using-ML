@@ -2,7 +2,10 @@ from flask import Flask, render_template,request,redirect,send_from_directory,ur
 import numpy as np
 import json
 import uuid
-import tensorflow as tf
+import torch
+import torch.nn.functional as F
+from torchvision import transforms
+from predict_image import HybridEfficientNetViT
 from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -26,7 +29,22 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for mobile API
-model = tf.keras.models.load_model("models/plant_disease_recog_model_pwp.keras")
+
+# Load PyTorch model
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model = HybridEfficientNetViT(num_classes=38, use_pretrained=False)
+_state_dict = torch.load("hybrid_plant_disease_model.pth", map_location=device, weights_only=True)
+model.load_state_dict(_state_dict)
+model.to(device)
+model.eval()
+
+# Image transform for PyTorch model
+image_transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225])
+])
 
 # Initialize all components
 db_tracker = DiseaseTracker()
@@ -56,14 +74,13 @@ label = ['Apple___Apple_scab',
  'Apple___Black_rot',
  'Apple___Cedar_apple_rust',
  'Apple___healthy',
- 'Background_without_leaves',
  'Blueberry___healthy',
- 'Cherry___Powdery_mildew',
- 'Cherry___healthy',
- 'Corn___Cercospora_leaf_spot Gray_leaf_spot',
- 'Corn___Common_rust',
- 'Corn___Northern_Leaf_Blight',
- 'Corn___healthy',
+ 'Cherry_(including_sour)___Powdery_mildew',
+ 'Cherry_(including_sour)___healthy',
+ 'Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot',
+ 'Corn_(maize)___Common_rust_',
+ 'Corn_(maize)___Northern_Leaf_Blight',
+ 'Corn_(maize)___healthy',
  'Grape___Black_rot',
  'Grape___Esca_(Black_Measles)',
  'Grape___Leaf_blight_(Isariopsis_Leaf_Spot)',
@@ -122,11 +139,11 @@ def home():
                              active_alerts=[],
                              farm_health={'overall_score': 85, 'status': 'Good', 'factors': ['No data available'], 'recent_cases': 0, 'avg_plant_health': 85})
 
-def extract_features(image):
-    image = tf.keras.utils.load_img(image,target_size=(160,160))
-    feature = tf.keras.utils.img_to_array(image)
-    feature = np.array([feature])
-    return feature
+def extract_features(image_path):
+    """Load and transform image for PyTorch model"""
+    image = PILImage.open(image_path).convert('RGB')
+    image_tensor = image_transform(image).unsqueeze(0).to(device)
+    return image_tensor
 
 
 
@@ -208,12 +225,16 @@ def get_top_predictions(prediction, top_n=3):
 
 def model_predict(image):
     img = extract_features(image)
-    prediction = model.predict(img)
+    
+    with torch.no_grad():
+        output = model(img)
+        probabilities = F.softmax(output, dim=1)
+        prediction = probabilities[0].cpu().numpy()
     
     # Primary prediction
-    primary_idx = prediction.argmax()
+    primary_idx = int(prediction.argmax())
     primary_disease = plant_disease[primary_idx]
-    confidence = calculate_confidence_score(prediction)
+    confidence = float(prediction.max() * 100)
     
     # Disease severity assessment
     severity, severity_color = assess_disease_severity(primary_disease['name'], confidence)
@@ -222,7 +243,7 @@ def model_predict(image):
     health_score = calculate_health_score(primary_disease['name'], confidence, severity)
     
     # Get top predictions for reference (optional - can be used in UI)
-    top_predictions = get_top_predictions(prediction, top_n=3)
+    top_predictions = get_top_predictions(np.array([prediction]), top_n=3)
     
     # Compile result - focusing on primary prediction only
     result = {

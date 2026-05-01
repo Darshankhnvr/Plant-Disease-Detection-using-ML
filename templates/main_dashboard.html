@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="../static/css/style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../static/css/animations.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -128,15 +129,6 @@
                                 <div class="action-text">
                                     <h4>Get Treatment</h4>
                                     <p>AI recommendations</p>
-                                </div>
-                            </a>
-                            <a href="/weather-dashboard" class="quick-action-item">
-                                <div class="action-icon">
-                                    <i class="fas fa-cloud-sun"></i>
-                                </div>
-                                <div class="action-text">
-                                    <h4>Weather Forecast</h4>
-                                    <p>Risk prediction</p>
                                 </div>
                             </a>
                             <a href="/analytics-dashboard" class="quick-action-item">
@@ -1292,5 +1284,48 @@
             }
         }
     </style>
+
+    <!-- Scroll-Reveal & Navbar Scroll Animations -->
+    <script>
+    (function () {
+      const navbar = document.querySelector('.modern-navbar');
+      if (navbar) {
+        const onScroll = () => {
+          navbar.classList.toggle('scrolled', window.scrollY > 40);
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        onScroll();
+      }
+
+      const revealSelectors = [
+        '.zigzag-card',
+        '.alerts-section',
+        '.recent-cases',
+        '.feature-card',
+        '.case-item',
+        '.alert-item'
+      ];
+
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              io.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+      );
+
+      revealSelectors.forEach((sel) => {
+        document.querySelectorAll(sel).forEach((el, i) => {
+          el.classList.add('reveal');
+          if (i < 6) el.classList.add('stagger-' + (i + 1));
+          io.observe(el);
+        });
+      });
+    })();
+    </script>
 </body>
 </html>

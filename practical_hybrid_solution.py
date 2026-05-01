@@ -3,12 +3,27 @@ Practical solution: Enhance your existing model with environmental data
 without needing to retrain from scratch
 """
 
-import tensorflow as tf
+import torch
+import torch.nn.functional as F
+from torchvision import transforms
+from PIL import Image
 import numpy as np
 import pickle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 import joblib
+from predict_image import HybridEfficientNetViT
+
+# Device selection
+_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+# Image transform matching predict_image.py
+_image_transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225])
+])
 
 class PracticalHybridPredictor:
     """
@@ -22,11 +37,15 @@ class PracticalHybridPredictor:
         self.env_scaler = StandardScaler()
         self.confidence_weights = {'image': 0.7, 'environmental': 0.3}
         
-    def load_existing_model(self, model_path="models/plant_disease_recog_model_pwp.keras"):
-        """Load your existing trained model"""
+    def load_existing_model(self, model_path="hybrid_plant_disease_model.pth"):
+        """Load your existing trained PyTorch model"""
         try:
-            self.image_model = tf.keras.models.load_model(model_path)
-            print("Existing image model loaded successfully!")
+            self.image_model = HybridEfficientNetViT(num_classes=38, use_pretrained=False)
+            state_dict = torch.load(model_path, map_location=_device, weights_only=True)
+            self.image_model.load_state_dict(state_dict)
+            self.image_model.to(_device)
+            self.image_model.eval()
+            print("Existing PyTorch image model loaded successfully!")
             return True
         except Exception as e:
             print(f"Could not load image model: {e}")
@@ -133,22 +152,22 @@ class PracticalHybridPredictor:
         return final_prediction
     
     def _predict_image(self, image_path):
-        """Use your existing image model"""
-        # Your existing image preprocessing
-        image = tf.keras.utils.load_img(image_path, target_size=(160, 160))
-        feature = tf.keras.utils.img_to_array(image)
-        feature = np.array([feature])
+        """Use your existing PyTorch image model"""
+        image = Image.open(image_path).convert('RGB')
+        image_tensor = _image_transform(image).unsqueeze(0).to(_device)
         
-        # Get prediction
-        prediction = self.image_model.predict(feature)
-        confidence = float(prediction.max())
-        predicted_class = int(prediction.argmax())
+        with torch.no_grad():
+            output = self.image_model(image_tensor)
+            probabilities = F.softmax(output, dim=1)
+            prediction_np = probabilities[0].cpu().numpy()
+            confidence = float(prediction_np.max())
+            predicted_class = int(prediction_np.argmax())
         
         return {
-            'prediction_vector': prediction[0],
+            'prediction_vector': prediction_np,
             'confidence': confidence,
             'predicted_class': predicted_class,
-            'method': 'image_cnn'
+            'method': 'image_pytorch'
         }
     
     def _predict_environmental(self, environmental_data):

@@ -1,0 +1,843 @@
+/* ============================================================
+   CROPSENSE - Premium Animation & Micro-Interaction Layer
+   Adds smooth transitions, scroll-reveal, glassmorphism,
+   and dynamic micro-animations on top of existing styles.
+   ============================================================ */
+
+/* ---------- Global Smooth Scroll ---------- */
+html {
+    scroll-behavior: smooth;
+}
+
+/* ---------- Page Load Fade-In ---------- */
+body {
+    animation: pageLoad 0.6s ease-out;
+}
+
+@keyframes pageLoad {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+/* ---------- Scroll-Reveal Utility Classes ---------- */
+.reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.reveal-left {
+    opacity: 0;
+    transform: translateX(-50px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-left.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.reveal-right {
+    opacity: 0;
+    transform: translateX(50px);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-right.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.reveal-scale {
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-scale.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* ---------- Stagger Delays (for grids) ---------- */
+.stagger-1 { transition-delay: 0.08s; }
+.stagger-2 { transition-delay: 0.16s; }
+.stagger-3 { transition-delay: 0.24s; }
+.stagger-4 { transition-delay: 0.32s; }
+.stagger-5 { transition-delay: 0.40s; }
+.stagger-6 { transition-delay: 0.48s; }
+
+/* ---------- Enhanced Navbar ---------- */
+.modern-navbar {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+                background 0.4s ease,
+                box-shadow 0.4s ease;
+}
+
+.modern-navbar.scrolled {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.08),
+                0 1px 3px rgba(46, 125, 50, 0.06);
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.nav-logo {
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-brand:hover .nav-logo {
+    transform: scale(1.12) rotate(8deg);
+}
+
+/* ---------- Hero Section Enhancements ---------- */
+.hero-title {
+    animation: heroTitleIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+@keyframes heroTitleIn {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+        filter: blur(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+.title-highlight {
+    background: linear-gradient(135deg, #81c784, #a5d6a7, #81c784);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientText 4s ease-in-out infinite;
+}
+
+@keyframes gradientText {
+    0%, 100% { background-position: 0% 50%; }
+    50%      { background-position: 100% 50%; }
+}
+
+.hero-subtitle {
+    animation: heroSubIn 1s cubic-bezier(0.16, 1, 0.3, 1) 0.4s both;
+}
+
+@keyframes heroSubIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 0.9;
+        transform: translateY(0);
+    }
+}
+
+/* Stat items staggered entry */
+.hero-stats .stat-item {
+    animation: statIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.hero-stats .stat-item:nth-child(1) { animation-delay: 0.6s; }
+.hero-stats .stat-item:nth-child(2) { animation-delay: 0.75s; }
+.hero-stats .stat-item:nth-child(3) { animation-delay: 0.9s; }
+
+@keyframes statIn {
+    from {
+        opacity: 0;
+        transform: translateY(25px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.hero-stats .stat-item {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.hero-stats .stat-item:hover {
+    transform: translateY(-4px) scale(1.05);
+}
+
+/* ---------- Quick Actions Card ---------- */
+.quick-actions-card {
+    animation: quickActionsIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.5s both;
+}
+
+@keyframes quickActionsIn {
+    from {
+        opacity: 0;
+        transform: translateX(40px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+.action-card {
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg,
+        rgba(46, 125, 50, 0) 0%,
+        rgba(46, 125, 50, 0.06) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.action-card:hover::after {
+    opacity: 1;
+}
+
+.action-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 28px rgba(46, 125, 50, 0.18);
+}
+
+.action-card:active {
+    transform: translateY(-2px) scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+.action-icon {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.4s ease;
+}
+
+.action-card:hover .action-icon {
+    transform: scale(1.12) rotate(-5deg);
+    box-shadow: 0 6px 18px rgba(46, 125, 50, 0.3);
+}
+
+/* ---------- Upload Section ---------- */
+.file-upload-label {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.file-upload-label::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: radial-gradient(circle, rgba(46, 125, 50, 0.08) 0%, transparent 70%);
+    transition: width 0.6s ease, height 0.6s ease;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.file-upload-label:hover::before {
+    width: 500px;
+    height: 500px;
+}
+
+.file-upload-label:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 30px rgba(46, 125, 50, 0.12);
+    border-color: #2e7d32;
+}
+
+.upload-icon i {
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.file-upload-label:hover .upload-icon i {
+    transform: translateY(-6px) scale(1.15);
+}
+
+/* Analyze button shimmer */
+.analyze-btn {
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.analyze-btn::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -60%;
+    width: 40%;
+    height: 200%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    transform: skewX(-25deg);
+    transition: left 0.6s ease;
+    pointer-events: none;
+}
+
+.analyze-btn:hover::after {
+    left: 120%;
+}
+
+.analyze-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(46, 125, 50, 0.35);
+    letter-spacing: 0.5px;
+}
+
+/* ---------- Results Section Animations ---------- */
+.results-section {
+    animation: resultsReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes resultsReveal {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.results-header i {
+    animation: checkPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+
+@keyframes checkPop {
+    from {
+        opacity: 0;
+        transform: scale(0) rotate(-180deg);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) rotate(0deg);
+    }
+}
+
+.result-image-container {
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.5s ease;
+}
+
+.result-image-container:hover {
+    transform: scale(1.02);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
+}
+
+.result-image-container:hover .image-overlay {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.image-overlay {
+    opacity: 0;
+    transform: scale(0.8);
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Metric cards staggered + bounce */
+.metric-card {
+    animation: metricIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.metric-card:nth-child(1) { animation-delay: 0.1s; }
+.metric-card:nth-child(2) { animation-delay: 0.2s; }
+.metric-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes metricIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.metric-card:hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.metric-card:hover i {
+    animation: iconBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes iconBounce {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.25); }
+    70%  { transform: scale(0.95); }
+    100% { transform: scale(1.1); }
+}
+
+/* ---------- Disease Info Cards ---------- */
+.info-item {
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+.info-item:hover {
+    background: rgba(46, 125, 50, 0.04);
+    transform: translateX(6px);
+}
+
+.info-item:hover i {
+    transform: scale(1.15);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---------- Feature Cards ---------- */
+.feature-card {
+    transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, #2e7d32, #4caf50, #81c784);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.feature-card:hover::before {
+    transform: scaleX(1);
+}
+
+.feature-card:hover {
+    transform: translateY(-12px);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+}
+
+.feature-card:hover .feature-icon {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(46, 125, 50, 0.35);
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.feature-icon {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.feature-card:hover .feature-icon i {
+    animation: featureIconSpin 0.6s ease;
+}
+
+@keyframes featureIconSpin {
+    0%   { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+}
+
+/* ---------- Crop Category Cards ---------- */
+.crop-category {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.crop-category:hover {
+    transform: translateY(-8px) scale(1.01);
+    box-shadow: 0 20px 50px rgba(46, 125, 50, 0.12);
+    border-color: #a5d6a7;
+}
+
+.crop-header i {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.crop-category:hover .crop-header i {
+    transform: scale(1.15) rotate(-8deg);
+    background: #2e7d32;
+    color: white;
+}
+
+.disease-item {
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.disease-item:hover {
+    transform: translateX(8px);
+    background: #e8f5e8;
+    border-left-color: #2e7d32;
+    box-shadow: 0 3px 12px rgba(46, 125, 50, 0.1);
+}
+
+/* ---------- About Section ---------- */
+.about-stat {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.about-stat:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+}
+
+.about-stat:hover .stat-number {
+    transform: scale(1.08);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mission, .vision {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.mission:hover, .vision:hover {
+    transform: translateX(8px);
+    box-shadow: 0 10px 30px rgba(46, 125, 50, 0.12);
+    border-left-color: #1b5e20;
+    border-left-width: 6px;
+}
+
+/* ---------- Tech Items ---------- */
+.tech-item {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.tech-item::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg,
+        rgba(46, 125, 50, 0) 0%,
+        rgba(46, 125, 50, 0.04) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+}
+
+.tech-item:hover::after {
+    opacity: 1;
+}
+
+.tech-item:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+}
+
+.tech-item:hover i {
+    animation: techPulse 0.6s ease;
+}
+
+@keyframes techPulse {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.2); }
+    100% { transform: scale(1.1); }
+}
+
+/* ---------- Buttons — Ripple Effect ---------- */
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.analyze-btn {
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before,
+.btn-secondary::before,
+.btn-success::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease;
+    pointer-events: none;
+}
+
+.btn-primary:active::before,
+.btn-secondary:active::before,
+.btn-success:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* ---------- Form Focus Glow ---------- */
+.form-control {
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-control:focus {
+    border-color: #2e7d32;
+    box-shadow: 0 0 0 4px rgba(46, 125, 50, 0.12),
+                0 2px 8px rgba(46, 125, 50, 0.08);
+    transform: translateY(-1px);
+}
+
+/* ---------- Yield Prediction Section ---------- */
+.yield-prediction-section {
+    animation: yieldFadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both;
+}
+
+@keyframes yieldFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(25px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.yield-metric {
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.yield-metric:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- Educational Tips ---------- */
+.tip-item {
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.tip-item:hover {
+    transform: translateY(-4px) translateX(4px);
+    box-shadow: 0 8px 24px rgba(46, 125, 50, 0.1);
+    border-color: #a5d6a7;
+}
+
+.tip-item:hover h6 {
+    letter-spacing: 0.3px;
+    transition: letter-spacing 0.3s ease;
+}
+
+/* ---------- Case Cards ---------- */
+.case-item,
+.case-card {
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.case-item:hover,
+.case-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------- Section Header Underline Animation ---------- */
+.section-header h2 {
+    position: relative;
+    display: inline-block;
+}
+
+.section-header h2::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #2e7d32, #4caf50);
+    border-radius: 2px;
+    transform: translateX(-50%);
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.section-header:hover h2::after {
+    width: 100px;
+}
+
+/* ---------- Floating Ambient Particles (hero) ---------- */
+.hero-background::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(2px 2px at  10%  20%, rgba(255,255,255,0.15), transparent),
+        radial-gradient(2px 2px at  30%  70%, rgba(255,255,255,0.12), transparent),
+        radial-gradient(2px 2px at  50%  30%, rgba(255,255,255,0.10), transparent),
+        radial-gradient(2px 2px at  70%  60%, rgba(255,255,255,0.14), transparent),
+        radial-gradient(2px 2px at  90%  15%, rgba(255,255,255,0.11), transparent),
+        radial-gradient(3px 3px at  20%  50%, rgba(255,255,255,0.08), transparent),
+        radial-gradient(3px 3px at  60%  80%, rgba(255,255,255,0.09), transparent),
+        radial-gradient(2px 2px at  80%  40%, rgba(255,255,255,0.13), transparent);
+    animation: particleDrift 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes particleDrift {
+    0%   { transform: translateY(0); }
+    100% { transform: translateY(-30px); }
+}
+
+/* ---------- Smooth Image Loading ---------- */
+.result-image {
+    animation: imageLoad 0.8s ease-out;
+}
+
+@keyframes imageLoad {
+    from {
+        opacity: 0;
+        filter: blur(10px);
+        transform: scale(1.05);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0);
+        transform: scale(1);
+    }
+}
+
+/* ---------- Environmental Data Cards ---------- */
+.env-data-item {
+    transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.env-data-item:hover {
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 6px 18px rgba(46, 125, 50, 0.12);
+    border-color: #a5d6a7;
+}
+
+/* ---------- Badge / Severity Pulse ---------- */
+.severity-badge {
+    transition: all 0.3s ease;
+}
+
+.severity-badge:hover {
+    transform: scale(1.08);
+}
+
+.severity-severe {
+    animation: severePulse 2.5s ease-in-out infinite;
+}
+
+@keyframes severePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.2); }
+    50%      { box-shadow: 0 0 0 6px rgba(211, 47, 47, 0); }
+}
+
+/* ---------- Loading Skeleton Placeholder ---------- */
+@keyframes skeletonShimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeleton {
+    background: linear-gradient(90deg,
+        #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeletonShimmer 1.5s ease-in-out infinite;
+    border-radius: 8px;
+}
+
+/* ---------- Tooltip Enhancement ---------- */
+[title] {
+    position: relative;
+}
+
+/* ---------- Prediction Card Glow ---------- */
+.prediction-card {
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.prediction-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 12px 35px rgba(46, 125, 50, 0.12),
+                0 0 0 1px rgba(46, 125, 50, 0.08);
+}
+
+/* ---------- Smooth Link Hover (global) ---------- */
+a {
+    transition: color 0.25s ease, opacity 0.25s ease;
+}
+
+/* ---------- Custom Selection Color ---------- */
+::selection {
+    background: rgba(46, 125, 50, 0.2);
+    color: #1b5e20;
+}
+
+::-moz-selection {
+    background: rgba(46, 125, 50, 0.2);
+    color: #1b5e20;
+}
+
+/* ---------- Scrollbar Styling (Webkit) ---------- */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #81c784, #4caf50);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #4caf50, #2e7d32);
+}
+
+/* ---------- Reduced Motion Accessibility ---------- */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    html {
+        scroll-behavior: auto;
+    }
+}
