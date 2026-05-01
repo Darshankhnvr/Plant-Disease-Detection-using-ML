@@ -112,6 +112,9 @@ class AnalyticsDashboard:
         df['health_improvement'] = df['final_health_score'] - df['initial_health_score']
         df['improvement_percentage'] = (df['health_improvement'] / (100 - df['initial_health_score'])) * 100
         
+        # Calculate cured cases (e.g. final health score >= 85 or improvement >= 50%)
+        cured_cases = len(df[(df['final_health_score'] >= 85) | (df['improvement_percentage'] >= 50)])
+        
         # Treatment effectiveness by type
         treatment_effectiveness = df.groupby('treatment_name').agg({
             'health_improvement': 'mean',
@@ -134,6 +137,7 @@ class AnalyticsDashboard:
             ],
             'summary': {
                 'total_treatments': len(df),
+                'cured_cases': cured_cases,
                 'avg_improvement': round(df['health_improvement'].mean(), 1),
                 'most_effective': df.loc[df['improvement_percentage'].idxmax(), 'treatment_name'] if not df.empty else None,
                 'most_cost_effective': df.loc[df['cost_per_improvement'].idxmin(), 'treatment_name'] if not df.empty else None
